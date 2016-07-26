@@ -13,6 +13,10 @@ mongoose.connect(config.mongoConnection);
 io.on('connection', (socket) => {
   let player = null
 
+  let emitInvalid = (errorMessage) => {
+    socket.emit('invalid', { message: errorMessage })
+  }
+
   socket.markAsPlayed = (opponentId) => {
     player.played.push(opponentId)
     player.save()
@@ -51,6 +55,15 @@ io.on('connection', (socket) => {
     }
   }
 
+  socket.isInGame = () => {
+    if (socket.game != null) {
+      return true
+    } else {
+      emitInvalid('not in game')
+      return false
+    }
+  }
+
   let gameOver = (winner, lookForNewPlayer) => {
     socket.game.winner = winner
     socket.game.save()
@@ -64,7 +77,7 @@ io.on('connection', (socket) => {
       winnerName = socket.opponent.name
       loserName = player.name
     }
-    console.log("*".repeat(10), winnerName,"has defeated",loserName,"*".repeat(10))
+    console.log("*".repeat(10), winnerName, "has defeated", loserName, "*".repeat(10))
     playerSockets[socket.opponent.id].emit('game over', socket.game)
     let opponentId = socket.opponent.id
     socket.markAsPlayed(opponentId)
@@ -86,6 +99,11 @@ io.on('connection', (socket) => {
   socket.emit('request registration', {})
 
   socket.on('register', (data) => {
+    if (player != null) {
+      emitInvalid('already registered')
+      return
+    }
+
     Player.findOne({
       name: data.name
     }, (err, doc) => {
@@ -106,9 +124,13 @@ io.on('connection', (socket) => {
     })
 
     socket.on('attack', () => {
+      if (!socket.isInGame()) {
+        return
+      }
+
       if (player.id != socket.game.current) {
         console.log(player.name, 'tried to play out of turn')
-        socket.emit('not your turn', {})
+        emitInvalid('not your turn')
         return
       }
 
@@ -131,9 +153,13 @@ io.on('connection', (socket) => {
     })
 
     socket.on('heal', () => {
+      if (!socket.isInGame()) {
+        return
+      }
+
       if (player.id != socket.game.current) {
         console.log(player.name, 'tried to play out of turn')
-        socket.emit('not your turn', {})
+        emitInvalid('not your turn')
         return
       }
 
