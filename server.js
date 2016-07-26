@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
     if (opponent === null) {
       freePlayers.push(player)
       console.log(player.name, 'is waiting to play')
-      socket.emit('waiting for new player', {})
+      socket.emit('waiting', {})
     } else {
       socket.opponent = opponent
       playerSockets[socket.opponent.id].opponent = player
