@@ -13,16 +13,22 @@ mongoose.connect(config.mongoConnection);
 io.on('connection', (socket) => {
   let player = null
 
-  let emitInvalid = (errorMessage) => {
-    socket.emit('invalid', { message: errorMessage })
-  }
-
   socket.markAsPlayed = (opponentId) => {
     player.played.push(opponentId)
     player.save()
   }
 
-  socket.checkForUnplayedPlayers = () => {
+  let emitInvalid = (errorMessage) => {
+    socket.emit('invalid', {
+      message: errorMessage
+    })
+  }
+
+  let isInGame = () => {
+    return socket.game != null
+  }
+
+  let checkForUnplayedPlayers = () => {
     let opponent = null
 
     console.log('checking on free players for', player.name)
@@ -55,16 +61,7 @@ io.on('connection', (socket) => {
     }
   }
 
-  socket.isInGame = () => {
-    if (socket.game != null) {
-      return true
-    } else {
-      emitInvalid('not in game')
-      return false
-    }
-  }
-
-  let gameOver = (winner, lookForNewPlayer) => {
+  let gameOver = (winner) => {
     socket.game.winner = winner
     socket.game.save()
     socket.emit('game over', socket.game)
@@ -82,18 +79,10 @@ io.on('connection', (socket) => {
     let opponentId = socket.opponent.id
     socket.markAsPlayed(opponentId)
     playerSockets[opponentId].markAsPlayed(player.id)
-    if (lookForNewPlayer) {
-      freePlayers.push(player)
-    }
-    freePlayers.push(socket.opponent)
     delete playerSockets[opponentId].opponent
     delete playerSockets[opponentId].game
     delete socket.opponent
     delete socket.game
-    if (lookForNewPlayer) {
-      socket.checkForUnplayedPlayers()
-    }
-    playerSockets[opponentId].checkForUnplayedPlayers()
   }
 
   socket.emit('request registration', {})
@@ -120,11 +109,24 @@ io.on('connection', (socket) => {
         id: player.id
       })
       console.log(player.name, 'has registered')
-      socket.checkForUnplayedPlayers()
+    })
+
+    socket.on('request game', () => {
+      console.log(player.name, 'is requesting a game')
+      if (player == null) {
+        emitInvalid('not registered')
+        return
+      }
+      if (isInGame()) {
+        emitInvalid('already in game')
+        return
+      }
+      checkForUnplayedPlayers()
     })
 
     socket.on('attack', () => {
-      if (!socket.isInGame()) {
+      if (!isInGame()) {
+        emitInvalid('not in game')
         return
       }
 
@@ -144,7 +146,7 @@ io.on('connection', (socket) => {
       socket.game.moves.push(move)
       socket.opponent.health -= move.value
       if (socket.opponent.health <= 0) {
-        gameOver(player.id, true)
+        gameOver(player.id)
       } else {
         socket.game.current = socket.opponent.id
         socket.emit('played', move)
@@ -153,7 +155,8 @@ io.on('connection', (socket) => {
     })
 
     socket.on('heal', () => {
-      if (!socket.isInGame()) {
+      if (!isInGame()) {
+        emitInvalid('not in game')
         return
       }
 
@@ -186,7 +189,7 @@ io.on('connection', (socket) => {
         }
       }
       if (socket.game != null) {
-        gameOver(socket.opponent.id, false)
+        gameOver(socket.opponent.id)
       }
     })
   })
