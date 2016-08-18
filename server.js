@@ -1,10 +1,11 @@
-let mongoose = require('mongoose')
-let random = require('random-js')()
-let server = require('http').createServer()
-let io = require('socket.io').listen(server)
-let Player = require('./models/player')
-let Game = require('./models/game')
-let config = require('./config')
+const mongoose = require('mongoose')
+const chance = require('chance')
+const random = require('random-js')()
+const server = require('http').createServer()
+const io = require('socket.io').listen(server)
+const Player = require('./models/player')
+const Game = require('./models/game')
+const config = require('./config')
 let freePlayers = []
 let playerSockets = {}
 
@@ -16,6 +17,10 @@ io.on('connection', (socket) => {
   socket.markAsPlayed = (opponentId) => {
     player.played.push(opponentId)
     player.save()
+  }
+
+  const takeASwing = () => {
+    return chance.bool({likelihood: 90})
   }
 
   let emitInvalid = (errorMessage) => {
@@ -34,7 +39,8 @@ io.on('connection', (socket) => {
     console.log('checking on free players for', player.name)
 
     for (let i = 0; i < freePlayers.length; i++) {
-      if (freePlayers[i].id !== player.id && player.played.indexOf(freePlayers[i].id) === -1) {
+      if (freePlayers[i].id !== player.id &&
+        player.played.indexOf(freePlayers[i].id) === -1) {
         opponent = freePlayers.splice(i, 1)[0]
         break;
       }
@@ -74,7 +80,8 @@ io.on('connection', (socket) => {
       winnerName = socket.opponent.name
       loserName = player.name
     }
-    console.log("*".repeat(10), winnerName, "has defeated", loserName, "*".repeat(10))
+    console.log("*".repeat(10), winnerName, "has defeated",
+      loserName, "*".repeat(10))
     playerSockets[socket.opponent.id].emit('game over', socket.game)
     let opponentId = socket.opponent.id
     socket.markAsPlayed(opponentId)
@@ -140,7 +147,7 @@ io.on('connection', (socket) => {
         player: player.id,
         action: 'attack',
         received: Date.now(),
-        value: random.integer(1, 30)
+        value: takeASwing() ? random.integer(1, 30) : 0
       }
 
       socket.game.moves.push(move)
