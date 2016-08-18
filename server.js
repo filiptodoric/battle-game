@@ -19,8 +19,13 @@ io.on('connection', (socket) => {
     player.save()
   }
 
-  const takeASwing = () => {
-    return chance.bool({likelihood: 90})
+  const chances = {
+    takeASwing = () => {
+      return chance.bool({likelihood: 90})
+    },
+    isCriticalHit = () => {
+      return chance.bool({likelihood: 10})
+    }
   }
 
   let emitInvalid = (errorMessage) => {
@@ -146,8 +151,18 @@ io.on('connection', (socket) => {
       let move = {
         player: player.id,
         action: 'attack',
-        received: Date.now(),
-        value: takeASwing() ? random.integer(1, 30) : 0
+        received: Date.now()
+      }
+
+      if(!chances.takeASwing()) {
+        move.value = 0
+        move.result = "miss"
+      } else if (chances.isCriticalHit()) {
+        move.value = random.integer(31,50)
+        move.result = "critical"
+      } else {
+        move.value = random.integer(1,30)
+        move.result = "hit"
       }
 
       socket.game.moves.push(move)
