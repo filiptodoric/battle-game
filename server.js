@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const chance = require('chance')
+const chance = require('chance')()
 const random = require('random-js')()
 const server = require('http').createServer()
 const io = require('socket.io').listen(server)
