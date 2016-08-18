@@ -20,10 +20,10 @@ io.on('connection', (socket) => {
   }
 
   const chances = {
-    takeASwing = () => {
+    takeASwing: () => {
       return chance.bool({likelihood: 90})
     },
-    isCriticalHit = () => {
+    isCriticalHit: () => {
       return chance.bool({likelihood: 10})
     }
   }
