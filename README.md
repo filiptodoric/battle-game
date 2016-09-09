@@ -17,5 +17,7 @@ To get up and running please follow the following steps
     }
 ```
 
+**Note:** If you would like to get started faster with a client that connects to this game, feel free to visit the [battle-game-client](https://github.com/rjriel/battle-game-client) repo.
+
 ## Contributing
-Please feel free to contribute to this project. Work on issues, open issues for bugs/enhancements and create pull requests. You can view the [CONTRIBUTING](CONTRIBUTING) document for more information
+Please feel free to contribute to this project. Work on issues, open issues for bugs/enhancements and create pull requests. You can view the [CONTRIBUTING](CONTRIBUTING.md) document for more information
