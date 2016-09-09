@@ -7,15 +7,11 @@ function Arena() {
   let players = {}
   let freePlayers = []
   let games = {}
-  let testVariable = 0
 
   process.on('game over', (game) => {
     delete games[game.id]
   })
 
-  this.test = () => {
-    console.log('here there', testVariable++)
-  }
 
   this.listPlayers = () => {
     let listOfPlayers = []
