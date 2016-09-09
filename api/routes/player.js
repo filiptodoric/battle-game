@@ -79,7 +79,7 @@ module.exports = (arena) => {
 
   router.route('/active')
     .get((req, res) => {
-      res.json(arena.players)
+      res.json(arena.listPlayers())
     })
 
   router.route('/:id')

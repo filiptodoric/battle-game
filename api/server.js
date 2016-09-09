@@ -5,6 +5,7 @@ const config = require('../config')
 
 module.exports = (arena) => {
   const playerRouter = require('./routes/player')(arena)
+  const gameRouter = require('./routes/game')(arena)
   var app = express()
   var router = express.Router()
 
@@ -33,6 +34,7 @@ module.exports = (arena) => {
   app.use(allowCrossDomain)
   app.use('/', router)
   app.use('/players/', playerRouter)
+  app.use('/games/', gameRouter)
 
   app.listen(config.apiPort)
   console.log('API listening on port', config.apiPort, '\n\n')
