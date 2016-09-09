@@ -20,10 +20,8 @@ let gameSchema = new Schema({
 
 gameSchema.methods.moveInTurn = function(playerId) {
   return new Promise((resolve, reject) => {
-    console.log(playerId," - ", this.current.toString())
     if (playerId !== this.current.toString()) {
       let message = 'move made out of turn'
-      console.log(message)
       if (playerId === this.player1.id) {
         this.player1.socket.emit('invalid', message)
         reject(message)
@@ -32,7 +30,6 @@ gameSchema.methods.moveInTurn = function(playerId) {
         reject(message)
       }
     } else {
-      console.log('in turn')
       resolve()
     }
   })
@@ -41,7 +38,6 @@ gameSchema.methods.moveInTurn = function(playerId) {
 gameSchema.methods.attack = function(playerId) {
   return new Promise((resolve, reject) => {
     this.moveInTurn(playerId).then(() => {
-      console.log('attack in turn')
       const move = new Move({
         game: this.id,
         player: playerId,
@@ -91,7 +87,6 @@ gameSchema.methods.attack = function(playerId) {
 gameSchema.methods.heal = function(playerId) {
   return new Promise((resolve, reject) => {
     this.moveInTurn(playerId).then(() => {
-      console.log('heal in turn')
       const move = new Move({
         game: this.id,
         player: playerId,
