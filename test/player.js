@@ -7,7 +7,7 @@ const Player = require('../models/player')
 //Require the dev-dependencies
 const chai = require('chai')
 const chaiHttp = require('chai-http')
-const server = require('../server')
+const server = require('../server').api
 const should = chai.should()
 
 chai.use(chaiHttp)
