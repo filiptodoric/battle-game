@@ -44,16 +44,18 @@ function Arena() {
 
       let player1 = players[player1Id]
       let player2 = players[player2Id]
-      Game.startGame(player1, player2).then((game) => {
-        player1.socket.game = game
-        player1.socket.emit('start game', game)
+      Game.startGame(player1, player2)
+          .then((game) => {
+            player1.socket.game = game
+            player1.socket.emit('start game', game)
 
-        player2.socket.game = game
-        player2.socket.emit('start game', game)
+            player2.socket.game = game
+            player2.socket.emit('start game', game)
 
-        games[game.id] = game
-        resolve(game)
-      })
+            games[game.id] = game
+            resolve(game)
+          })
+          .catch(reject)
     })
   }
 
@@ -64,7 +66,7 @@ function Arena() {
   this.enteredArena = (player) => {
     players[player.id] = player
     Object.keys(games).forEach((key) => {
-      if(games[key].players.indexOf(player.id) >= 0) {
+      if (games[key].players.indexOf(player.id) >= 0) {
         player.socket.game = games[key]
         console.log(player.id, "IS IN GAME")
         player.socket.emit('in game', games[key])

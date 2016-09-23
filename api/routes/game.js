@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Game = require('../../models/game')
+const Move = require('../../models/move')
 
 module.exports = (arena) => {
   router.route('/')
@@ -53,6 +54,10 @@ module.exports = (arena) => {
       arena.startGame(req.params.player1, req.params.player2)
       .then((game) => {
         res.json(game)
+      })
+      .catch((err) => {
+        res.status(500)
+        res.json({ message: err })
       })
     })
 

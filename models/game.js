@@ -138,26 +138,31 @@ gameSchema.methods.gameOver = function(finalMove) {
 
 gameSchema.statics.startGame = function startGame(player1, player2) {
   return new Promise((resolve, reject) => {
-    let game = new this()
-    game.started = Date.now()
-    game.moves = []
+    if(player1 == null || player2 == null)
+      reject("Not enough players available to play")
+    else {
+      let game = new this()
+      game.started = Date.now()
+      game.moves = []
 
-    game.players.push(player1.id)
-    game.player1 = player1
-    player1.health = 100
+      game.players.push(player1.id)
+      game.player1 = player1
+      player1.health = 100
 
-    game.players.push(player2.id)
-    game.player2 = player2
-    player2.health = 100
+      game.players.push(player2.id)
+      game.player2 = player2
+      player2.health = 100
 
-    game.current = player1.id
-    game.save((err, doc) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(game)
-      }
-    })
+      game.current = player1.id
+      game.save((err, doc) => {
+        if (err) {
+          console.error("Issue saving game to db", err)
+          reject("Error saving game to database")
+        } else {
+          resolve(game)
+        }
+      })
+    }
   })
 }
 

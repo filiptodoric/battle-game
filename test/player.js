@@ -81,7 +81,7 @@ describe('Players', () => {
 
   describe('/GET/:id players', () => {
     it('it should GET a player by the given id', (done) => {
-      let player = new Player({name: 'qlikachu', role: 'player'});
+      let player = new Player({name: 'qlikachu', role: 'player'})
       player.save((err, player) => {
         chai.request(server)
             .get('/players/' + player.id)
@@ -100,7 +100,7 @@ describe('Players', () => {
 
   describe('/DELETE/:id players', () => {
     it('it should DELETE a player by the given id', (done) => {
-      let player = new Player({name: 'qlikachu', role: 'player'});
+      let player = new Player({name: 'qlikachu', role: 'player'})
       player.save((err, player) => {
         chai.request(server)
             .delete('/players/' + player.id)
