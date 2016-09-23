@@ -5,7 +5,7 @@ const server = require('http').createServer()
 const io = require('socket.io').listen(server)
 const Player = require('../models/player')
 const Game = require('../models/game')
-const config = require('../config')
+const config = require('config')
 
 module.exports = (arena) => {
   io.on('connection', (socket) => {

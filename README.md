@@ -8,12 +8,12 @@ To get up and running please follow the following steps
 
 1. clone the repo
 2. run `npm install` to install dependencies
-3. add a config.js file to the root of the project. It should look like the following:
+3. Modify the config/default.json file as needed or create your own config with the following:
 ```
-    module.exports = {
-      mongoConnection: <connection string to the mongo db>,
-      socketPort: <which port for players to connect to via WebSocket>,
-      apiPort: <which port for admins to connect to via REST API>
+    {
+      "mongoConnection": <connection string to the mongo db>,
+      "socketPort": <which port for players to connect to via WebSocket>,
+      "apiPort": <which port for admins to connect to via REST API>
     }
 ```
 
