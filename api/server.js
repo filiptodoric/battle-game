@@ -38,4 +38,5 @@ module.exports = (arena) => {
 
   app.listen(config.apiPort)
   console.log('API listening on port', config.apiPort, '\n\n')
+  return app
 }

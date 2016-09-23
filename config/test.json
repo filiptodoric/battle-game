@@ -1,0 +1,5 @@
+{
+  "mongoConnection": "mongodb://localhost/battle-game-test",
+  "socketPort": 3000,
+  "apiPort": 8080
+}

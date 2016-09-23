@@ -4,7 +4,8 @@ const Arena = require('./arena')
 
 arena = new Arena()
 
+mongoose.Promise = global.Promise
 mongoose.connect(config.mongoConnection)
 
 const socket = require('./socket/server')(arena)
-const api = require('./api/server')(arena)
+module.exports = require('./api/server')(arena)

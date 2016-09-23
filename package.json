@@ -4,7 +4,8 @@
   "description": "A game pitting multiple players against each other with simple attack/heal options",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "SET NODE_ENV=dev && node server.js",
+    "test": "mocha --timeout 10000"
   },
   "author": "",
   "license": "ISC",
@@ -20,5 +21,10 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/rjriel/battle-game.git"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^3.0.0",
+    "mocha": "^3.0.2"
   }
 }
