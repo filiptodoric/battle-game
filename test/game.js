@@ -55,9 +55,6 @@ describe('Games', () => {
 
   describe('/POST games', () => {
     it('it should not start a game without enough players', (done) => {
-      let player = {
-
-      }
       chai.request(server)
           .post('/games')
           .set("Authorization", authorizationHeader)

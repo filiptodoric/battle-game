@@ -34,7 +34,7 @@ describe('Players', () => {
   })
 
   beforeEach((done) => { //Before each test we empty the database
-    Player.remove({ $not: { "_id" : adminId }}, (err) => {
+    Player.remove({$not: {"_id": adminId}}, (err) => {
       done()
     })
   })
@@ -58,9 +58,6 @@ describe('Players', () => {
 
   describe('/POST players', () => {
     it('it should not POST a player without name field', (done) => {
-      let player = {
-
-      }
       chai.request(server)
           .post('/players')
           .set("Authorization", authorizationHeader)

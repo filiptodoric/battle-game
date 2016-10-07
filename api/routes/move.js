@@ -30,13 +30,13 @@ module.exports = (arena) => {
           })
           return
         }
-        Player.findOne({"_id" : req.player._id},(err, player) => {
-          if(err) {
+        Player.findOne({"_id": req.player._id}, (err, player) => {
+          if (err) {
             console.error("Issue retrieving player on move POST", err)
             res.status(err.statusCode || 500).json({message: "processing of move failed"})
           } else {
             Game.findOne({"players": player._id}, (err, game) => {
-              if(err || game == null) {
+              if (err || game == null) {
                 console.error("Issue retrieving game on move POST", err, game)
                 res.status(err ? err.statusCode : 500).json({message: "processing of move failed"})
               } else {
@@ -124,7 +124,7 @@ module.exports = (arena) => {
       .delete((req, res) => {
         Move.remove({
           _id: req.params.id
-        }, function(err, move) {
+        }, function (err, move) {
           if (err) {
             res.status(err.statusCode || 500).json(err)
           } else {
@@ -158,7 +158,7 @@ module.exports = (arena) => {
        * @apiError (500) InternalServerError The identifier specified was invalid
        */
       .get((req, res) => {
-        Move.findById(req.params.id, function(err, move) {
+        Move.findById(req.params.id, function (err, move) {
           if (err) {
             res.status(err.statusCode || 500).json(err)
           } else if (move == null) {

@@ -15,15 +15,15 @@ let playerSchema = new Schema({
   }
 })
 
-playerSchema.virtual('socket').get(function() {
+playerSchema.virtual('socket').get(function () {
   return this.__socket
-}).set(function(val) {
+}).set(function (val) {
   this.__socket = val
 })
 
-playerSchema.virtual('health').get(function() {
+playerSchema.virtual('health').get(function () {
   return this.__health
-}).set(function(val) {
+}).set(function (val) {
   this.__health = val
 })
 

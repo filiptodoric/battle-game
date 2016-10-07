@@ -57,9 +57,6 @@ describe('Moves', () => {
 
   describe('/POST moves', () => {
     it('it should not POST a move without action field', (done) => {
-      let move = {
-
-      }
       chai.request(server)
           .post('/moves')
           .set("Authorization", authorizationHeader)
@@ -79,26 +76,26 @@ describe('Moves', () => {
       // players created and the player attacking being
       // the current player
       /*game.save((err, result) => {
-        let move = {
-          action: "attack"
-        }
-        chai.request(server)
-            .post('/moves')
-            .set("Authorization", authorizationHeader)
-            .send(move)
-            .end((err, res) => {
-              res.should.have.status(201)
-              res.body.should.be.a('object')
-              res.body.should.have.property('id').be.a('string')
-              done()
-            })
-      })*/
+       let move = {
+       action: "attack"
+       }
+       chai.request(server)
+       .post('/moves')
+       .set("Authorization", authorizationHeader)
+       .send(move)
+       .end((err, res) => {
+       res.should.have.status(201)
+       res.body.should.be.a('object')
+       res.body.should.have.property('id').be.a('string')
+       done()
+       })
+       })*/
     })
   })
 
   describe('/GET/:id moves', () => {
     it('it should GET a move by the given id', (done) => {
-      let move = new Move({action: 'attack', value: 10 })
+      let move = new Move({action: 'attack', value: 10})
       move.save((err, move) => {
         chai.request(server)
             .get('/moves/' + move.id)

@@ -37,7 +37,8 @@ module.exports = (arena) => {
       Player.findOne({
         _id: data.id
       }, (err, doc) => {
-        if (err) {} else if (doc == null) {
+        if (err) {
+        } else if (doc == null) {
 
         } else {
           thisPlayer = doc
@@ -45,7 +46,7 @@ module.exports = (arena) => {
           arena.enteredArena(thisPlayer)
         }
         console.log(thisPlayer.name, 'has entered the arena')
-        socket.emit('in arena',{})
+        socket.emit('in arena', {})
       })
     })
 

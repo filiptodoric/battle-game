@@ -18,7 +18,7 @@ let gameSchema = new Schema({
   }
 })
 
-gameSchema.methods.moveInTurn = function(playerId) {
+gameSchema.methods.moveInTurn = function (playerId) {
   return new Promise((resolve, reject) => {
     if (playerId !== this.current.toString()) {
       let message = 'move made out of turn'
@@ -35,7 +35,7 @@ gameSchema.methods.moveInTurn = function(playerId) {
   })
 }
 
-gameSchema.methods.attack = function(playerId) {
+gameSchema.methods.attack = function (playerId) {
   return new Promise((resolve, reject) => {
     this.moveInTurn(playerId).then(() => {
       const move = new Move({
@@ -45,12 +45,12 @@ gameSchema.methods.attack = function(playerId) {
         received: Date.now()
       })
 
-      if (random.bool(1,10)) {
+      if (random.bool(1, 10)) {
         // missed
         move.result = 'miss'
         move.value = 0
       } else {
-        if (random.bool(1,10)) {
+        if (random.bool(1, 10)) {
           // critical hit
           move.result = 'critical'
           move.value = random.integer(31, 50)
@@ -85,7 +85,7 @@ gameSchema.methods.attack = function(playerId) {
   })
 }
 
-gameSchema.methods.heal = function(playerId) {
+gameSchema.methods.heal = function (playerId) {
   return new Promise((resolve, reject) => {
     this.moveInTurn(playerId).then(() => {
       const move = new Move({
@@ -116,7 +116,7 @@ gameSchema.methods.heal = function(playerId) {
   })
 }
 
-gameSchema.methods.gameOver = function(finalMove) {
+gameSchema.methods.gameOver = function (finalMove) {
   if (this.player1.health <= 0) {
     // player 2 has won
     this.winner = this.player2.id
@@ -140,7 +140,7 @@ gameSchema.methods.gameOver = function(finalMove) {
 
 gameSchema.statics.startGame = function startGame(player1, player2) {
   return new Promise((resolve, reject) => {
-    if(player1 == null || player2 == null)
+    if (player1 == null || player2 == null)
       reject("Not enough players available to play")
     else {
       let game = new this()
@@ -168,21 +168,21 @@ gameSchema.statics.startGame = function startGame(player1, player2) {
   })
 }
 
-gameSchema.virtual('player1').get(function() {
+gameSchema.virtual('player1').get(function () {
   return this.__player1
-}).set(function(val) {
+}).set(function (val) {
   this.__player1 = val
 })
 
-gameSchema.virtual('player2').get(function() {
+gameSchema.virtual('player2').get(function () {
   return this.__player2
-}).set(function(val) {
+}).set(function (val) {
   this.__player2 = val
 })
 
-gameSchema.virtual('moves').get(function() {
+gameSchema.virtual('moves').get(function () {
   return this.__moves
-}).set(function(val) {
+}).set(function (val) {
   this.__moves = val
 })
 

@@ -26,42 +26,41 @@ module.exports = (arena) => {
   }
 
   let checkAuthorization = (req, res, next) => {
-    if(req.url.startsWith("/signup")) {
+    if (req.url.startsWith("/signup")) {
       next()
     } else {
       if (!req.headers.authorization) {
-        res.status(401).json({ error: 'API ID/Secret required' })
+        res.status(401).json({error: 'API ID/Secret required'})
       } else {
         var encoded = req.headers.authorization.split(' ')[1]
         var decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
-        if(decoded.length == 2) {
+        if (decoded.length == 2) {
           let credentials = {
             apiId: decoded[0],
             apiSecret: decoded[1],
           }
           Player.find(credentials)
               .then((result) => {
-                if(result.length > 0) {
+                if (result.length > 0) {
                   req.player = result[0]
                   next()
                 } else {
-                  res.status(401).json({ error: 'invalid API ID/Secret'})
+                  res.status(401).json({error: 'invalid API ID/Secret'})
                 }
               })
         } else {
-          res.status(401).json({ error: 'invalid Authorization header'})
+          res.status(401).json({error: 'invalid Authorization header'})
         }
       }
     }
   }
 
   router.route('/')
-    .get((req, res) => {
-      res.json({
-        message: 'Welcome to the Game API'
+      .get((req, res) => {
+        res.json({
+          message: 'Welcome to the Game API'
+        })
       })
-    })
-
 
 
   app.use(allowCrossDomain)
