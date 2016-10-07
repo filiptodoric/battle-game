@@ -43,13 +43,6 @@ module.exports = (arena) => {
           }
         })
       })
-
-  router.route('/start')
-      .get((req, res) => {
-        res.status(400).json({
-          message: "Please post to start a game"
-        })
-      })
       .post((req, res) => {
         arena.startGame(req.params.player1, req.params.player2)
             .then((game) => {
@@ -60,6 +53,7 @@ module.exports = (arena) => {
               res.json({message: err})
             })
       })
+
 
   router.route('/:id')
   /**

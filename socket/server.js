@@ -11,10 +11,6 @@ module.exports = (arena) => {
   io.on('connection', (socket) => {
     let thisPlayer = null
 
-    const isInGame = () => {
-      return socket.game != null
-    }
-
     let emitInvalid = (errorMessage) => {
       socket.emit('invalid', errorMessage)
     }
@@ -23,37 +19,13 @@ module.exports = (arena) => {
 
     }
 
-    const moves = {
-      attack: () => {
-        if(isInGame()) {
-          socket.game.attack(thisPlayer.id)
-        } else {
-          emitInvalid('not currently in a game')
-        }
-      },
-      heal: () => {
-        if (isInGame()) {
-          socket.game.heal(thisPlayer.id)
-        } else {
-          emitInvalid('not currently in a game')
-        }
-      }
-    }
-
-
-    socket.on('attack', moves.attack)
-    socket.on('heal', moves.heal)
     socket.on('ready to play', () => {
       console.log(thisPlayer.name, 'is ready to play')
       if (thisPlayer == null) {
         emitInvalid('not in arena')
         return
       }
-      if (isInGame()) {
-        emitInvalid('already in game')
-        return
-      }
-      arena.availableToPlay(thisPlayer.id)
+
     })
 
     socket.on('enter arena', (data) => {

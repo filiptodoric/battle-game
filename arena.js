@@ -75,6 +75,16 @@ class Arena {
     })
   }
 
+  isInGame(player) {
+    let inGame = false
+    Object.keys(this.games).forEach((key) => {
+      if (this.games[key].players.indexOf(player.id) >= 0) {
+        inGame = true
+      }
+    })
+    return inGame
+  }
+
   leftArena(playerId) {
     delete this.players[playerId]
     this.freePlayers.splice(this.freePlayers.indexOf(playerId), 1)
