@@ -79,6 +79,7 @@ gameSchema.methods.attack = function(playerId) {
           this.player1.socket.emit('move played', doc)
           this.player2.socket.emit('move played', doc)
         }
+        resolve(doc)
       })
     }).catch(reject)
   })
@@ -109,6 +110,7 @@ gameSchema.methods.heal = function(playerId) {
         }
         this.player1.socket.emit('move played', doc)
         this.player2.socket.emit('move played', doc)
+        resolve(doc)
       })
     }).catch(reject)
   })

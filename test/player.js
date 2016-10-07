@@ -13,8 +13,28 @@ const should = chai.should()
 chai.use(chaiHttp)
 //Our parent block
 describe('Players', () => {
-  beforeEach((done) => { //Before each test we empty the database
+  let authorizationHeader;
+  let adminId;
+
+  before((done) => {
     Player.remove({}, (err) => {
+      let admin = new Player({
+        name: 'test admin',
+        role: 'admin',
+        apiId: 'test-here',
+        apiSecret: 'test-there'
+      })
+      admin.save((err, player) => {
+        authorizationHeader = new Buffer(player.apiId + ":" + player.apiSecret).toString('base64')
+        authorizationHeader = "Basic " + authorizationHeader
+        adminId = player._id
+        done()
+      })
+    })
+  })
+
+  beforeEach((done) => { //Before each test we empty the database
+    Player.remove({ $not: { "_id" : adminId }}, (err) => {
       done()
     })
   })
@@ -25,10 +45,12 @@ describe('Players', () => {
     it('it should GET all the players', (done) => {
       chai.request(server)
           .get('/players')
+          .set("Authorization", authorizationHeader)
           .end((err, res) => {
             res.should.have.status(200)
             res.body.should.be.a('array')
-            res.body.length.should.be.eql(0)
+            // should equal 1 because of the admin
+            res.body.length.should.be.eql(1)
             done()
           })
     })
@@ -41,6 +63,7 @@ describe('Players', () => {
       }
       chai.request(server)
           .post('/players')
+          .set("Authorization", authorizationHeader)
           .send(player)
           .end((err, res) => {
             res.should.have.status(400)
@@ -56,6 +79,7 @@ describe('Players', () => {
       }
       chai.request(server)
           .post('/players')
+          .set("Authorization", authorizationHeader)
           .send(player)
           .end((err, res) => {
             res.should.have.status(201)
@@ -70,6 +94,7 @@ describe('Players', () => {
     it('it should GET all active players', (done) => {
       chai.request(server)
           .get('/players/active')
+          .set("Authorization", authorizationHeader)
           .end((err, res) => {
             res.should.have.status(200)
             res.body.should.be.a('array')
@@ -85,6 +110,7 @@ describe('Players', () => {
       player.save((err, player) => {
         chai.request(server)
             .get('/players/' + player.id)
+            .set("Authorization", authorizationHeader)
             .end((err, res) => {
               res.should.have.status(200)
               res.body.should.be.a('object')
@@ -104,6 +130,7 @@ describe('Players', () => {
       player.save((err, player) => {
         chai.request(server)
             .delete('/players/' + player.id)
+            .set("Authorization", authorizationHeader)
             .end((err, res) => {
               res.should.have.status(200)
               res.body.should.be.a('object')

@@ -3,7 +3,9 @@ let Schema = mongoose.Schema
 
 let playerSchema = new Schema({
   name: String,
-  role: String
+  role: String,
+  apiId: String,
+  apiSecret: String
 }, {
   toObject: {
     virtuals: true
