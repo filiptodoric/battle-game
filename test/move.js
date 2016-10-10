@@ -57,6 +57,7 @@ describe('Moves', () => {
 
   describe('/POST moves', () => {
     it('it should not POST a move without action field', (done) => {
+      let move = {}
       chai.request(server)
           .post('/moves')
           .set("Authorization", authorizationHeader)

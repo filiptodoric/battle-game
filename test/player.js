@@ -58,6 +58,7 @@ describe('Players', () => {
 
   describe('/POST players', () => {
     it('it should not POST a player without name field', (done) => {
+      let player = {}
       chai.request(server)
           .post('/players')
           .set("Authorization", authorizationHeader)
@@ -113,6 +114,64 @@ describe('Players', () => {
               res.body.should.be.a('object')
               res.body.should.have.property('name').eql('qlikachu')
               res.body.should.have.property('role').eql('player')
+              res.body.should.have.property('_id').eql(player.id)
+              done()
+            })
+      })
+
+    })
+  })
+
+  describe('/POST/:id players', () => {
+    it('it should update a player by the given id', (done) => {
+      let player = new Player({name: 'qlikachu', role: 'player'})
+      player.save((err, player) => {
+        let updateData = {
+          maxSkills: 20,
+          skills: {
+            strength: 10,
+            agility: 10,
+            distraction: 10
+          }
+        }
+        chai.request(server)
+            .post('/players/' + player.id)
+            .set("Authorization", authorizationHeader)
+            .send(updateData)
+            .end((err, res) => {
+              res.should.have.status(400)
+              res.body.should.be.a('object')
+              res.body.should.have.property('message')
+              done()
+            })
+      })
+
+    })
+    it('it should update a player by the given id', (done) => {
+      let player = new Player({name: 'qlikachu', role: 'player'})
+      player.save((err, player) => {
+        let updateData = {
+          maxSkills: 20,
+          skills: {
+            strength: 10,
+            agility: 5,
+            distraction: 5
+          }
+        }
+        chai.request(server)
+            .post('/players/' + player.id)
+            .set("Authorization", authorizationHeader)
+            .send(updateData)
+            .end((err, res) => {
+              res.should.have.status(200)
+              res.body.should.be.a('object')
+              res.body.should.have.property('name').eql('qlikachu')
+              res.body.should.have.property('role').eql('player')
+              res.body.should.have.property('maxSkills').eql(20)
+              res.body.should.have.property('skills')
+              res.body.skills.should.have.property('strength').eql(10)
+              res.body.skills.should.have.property('agility').eql(5)
+              res.body.skills.should.have.property('distraction').eql(5)
               res.body.should.have.property('_id').eql(player.id)
               done()
             })

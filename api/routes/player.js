@@ -166,7 +166,7 @@ module.exports = (arena) => {
             })
             .catch((error) => {
               console.log("Error updating Player", error)
-              res.status(error.status || 500).json(error.message || error)
+              res.status(error.status || 500).json(error)
             })
       })
 
