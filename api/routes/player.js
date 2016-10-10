@@ -148,6 +148,27 @@ module.exports = (arena) => {
           }
         })
       })
+      .post((req, res) => {
+        if(req.params.id !== req.player.id.toString() && req.player.role !== "admin") {
+          res.status(403).json({ message: "not allowed to perform this action" })
+        }
+        Player.findOne({ _id: req.params.id })
+            .then((player) => {
+              if(req.body.maxSkills && req.player.role === "admin")
+                player.maxSkills = req.body.maxSkills
+              player.addSkills(req.body.skills)
+              if(player.skills.strength + player.skills.agility + player.skills.distraction > player.maxSkills)
+                throw { status: 400, message: "the amount of skills listed would be greater than the max skills for the player" }
+              return player.save()
+            })
+            .then((result) => {
+              res.json(result)
+            })
+            .catch((error) => {
+              console.log("Error updating Player", error)
+              res.status(error.status || 500).json(error.message || error)
+            })
+      })
 
   return router;
 }

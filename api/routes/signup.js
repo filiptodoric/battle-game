@@ -41,6 +41,7 @@ router.route('/')
               newPlayer.role = "player"
               newPlayer.apiId = uuid.v4()
               newPlayer.apiSecret = uuid.v4()
+              newPlayer.maxSkills = 12
               newPlayer.save().then((player) => {
                 res.status(201).json({
                   apiId: player.apiId,
