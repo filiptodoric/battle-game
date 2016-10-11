@@ -123,7 +123,7 @@ describe('Players', () => {
   })
 
   describe('/POST/:id players', () => {
-    it('it should update a player by the given id', (done) => {
+    it('it should not update a player when the sum of skills is greater than maxSkills', (done) => {
       let player = new Player({name: 'qlikachu', role: 'player'})
       player.save((err, player) => {
         let updateData = {
