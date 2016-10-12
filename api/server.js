@@ -8,15 +8,15 @@ const playerRouter = require('./routes/player')
 const gameRouter = require('./routes/game')
 const moveRouter = require('./routes/move')
 const signupRouter = require('./routes/signup')
-var app = express()
-var router = express.Router()
+const app = express()
+const router = express.Router()
 
 app.use(bodyParser.urlencoded({
   extended: true
 }))
 app.use(bodyParser.json())
 
-var allowCrossDomain = (req, res, next) => {
+const allowCrossDomain = (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'GET,POST,DELETE')
   res.header('Access-Control-Allow-Headers', 'Content-Type')
@@ -31,8 +31,8 @@ let checkAuthorization = (req, res, next) => {
     if (!req.headers.authorization) {
       res.status(401).json({message: 'API ID/Secret required'})
     } else {
-      var encoded = req.headers.authorization.split(' ')[1]
-      var decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+      const encoded = req.headers.authorization.split(' ')[1]
+      const decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
       if (decoded.length == 2) {
         let credentials = {
           apiId: decoded[0],
