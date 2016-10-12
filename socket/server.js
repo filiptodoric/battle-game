@@ -2,15 +2,27 @@ const mongoose = require('mongoose')
 const chance = require('chance')()
 const random = require('random-js')()
 const server = require('http').createServer()
-const io = require('socket.io').listen(server)
+const socketio = require('socket.io')
 const Player = require('../models/player')
-const Game = require('../models/game')
+let Game
 const config = require('config')
+
+let io = null
+
+exports.io = function() {
+  return io
+}
+
+exports.initialize = function() {
+  io = socketio.listen(server)
+  // need to initialize Game below because
+  // socket io is required in the game model
+  Game = require('../models/game')
 
   io.on("connection", (socket) => {
     let thisPlayer = null
-    if(socket.handshake.query.apiId == null || socket.handshake.query.apiSecret == null) {
-      socket.emit("invalid", { message: "missing 'apiId' and/or 'apiSecret' parameters" })
+    if (socket.handshake.query.apiId == null || socket.handshake.query.apiSecret == null) {
+      socket.emit("invalid", {message: "missing 'apiId' and/or 'apiSecret' parameters"})
       socket.disconnect()
     } else {
       Player.findOne({
@@ -18,19 +30,19 @@ const config = require('config')
         apiSecret: socket.handshake.query.apiSecret
       }).then((doc) => {
         if (doc == null) {
-          socket.emit("invalid", { message: "player not found" })
+          socket.emit("invalid", {message: "player not found"})
         } else {
           thisPlayer = doc
           thisPlayer.socket = socket.id
           thisPlayer.save()
               .then((result) => {
                 console.log(thisPlayer.name, "has connected")
-                socket.emit("success", { id: thisPlayer.id })
+                socket.emit("success", {id: thisPlayer.id})
 
-                Game.findOne({ players: thisPlayer._id })
+                Game.findOne({ players: thisPlayer._id, winner: null })
                     .then((game) => {
-                      if(game != null) {
-                        socket.emit("in game", { id: game._id })
+                      if (game != null) {
+                        socket.emit("in game", {id: game._id})
                       }
                     })
               })
@@ -50,5 +62,5 @@ const config = require('config')
 
   server.listen(config.socketPort)
   console.log('socket listening on port', config.socketPort, '\n\n')
-
-module.exports = io
+  return io
+}

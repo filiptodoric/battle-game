@@ -34,35 +34,41 @@ router.route('/')
           console.error("Issue retrieving player on move POST", err)
           res.status(err.statusCode || 500).json({message: "processing of move failed"})
         } else {
-          Game.findOne({"players": player._id}, (err, game) => {
-            if (err || game == null) {
-              console.error("Issue retrieving game on move POST", err, game)
-              res.status(err ? err.statusCode : 500).json({message: "processing of move failed"})
-            } else {
-              if (req.body.action === "attack") {
-                game.attack(player._id)
-                    .then((move) => {
-                      res.json(move)
-                    })
-                    .catch((error) => {
-                      console.log("error on attacking", error)
-                      res.status(500).json(error)
-                    })
-              } else if (req.body.action == "heal") {
-                game.heal(player._id)
-                    .then((move) => {
-                      res.json(move)
-                    })
-                    .catch((error) => {
-                      console.error("error on healing", error)
-                      res.status(500).json(error)
-                    })
-              } else {
-                console.warn("player", player._id, "tried to play illegal move", req.body.action)
-                res.status(400).json({message: "illegal move action passed"})
-              }
-            }
-          })
+          Game.findOne({"players": player._id, winner: null})
+              .populate('players')
+              .then((game) => {
+                if (game == null) {
+                  console.error("Issue retrieving game on move POST", err, game)
+                  res.status(500).json({message: "not in a game"})
+                } else {
+                  if (req.body.action === "attack") {
+                    game.attack(player._id)
+                        .then((move) => {
+                          res.json(move)
+                        })
+                        .catch((error) => {
+                          console.log("error on attacking", error)
+                          res.status(500).json(error)
+                        })
+                  } else if (req.body.action == "heal") {
+                    game.heal(player._id)
+                        .then((move) => {
+                          res.json(move)
+                        })
+                        .catch((error) => {
+                          console.error("error on healing", error)
+                          res.status(500).json(error)
+                        })
+                  } else {
+                    console.warn("player", player._id, "tried to play illegal move", req.body.action)
+                    res.status(400).json({message: "illegal move action passed"})
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error("Issue retrieving game on move POST", err, game)
+                res.status(err ? err.statusCode : 500).json({message: "processing of move failed"})
+              })
         }
       })
     })

@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Game = require('../../models/game')
 const Move = require('../../models/move')
+const Player = require('../../models/player')
 
 router.route('/')
 /**
@@ -60,7 +61,7 @@ router.route('/')
                 res.status(400).json({message: "Player 1 is not connected"})
               } else {
                 player1 = player
-                return Game.findOne({players: player._id})
+                return Game.findOne({players: player._id, winner: null })
               }
             })
             .then((game) => {
@@ -74,18 +75,18 @@ router.route('/')
             .then((player) => {
               // check that player 2 exists and is connected
               if (player == null) {
-                res.status(400).json({message: "Player 1 not found"})
+                res.status(400).json({message: "Player 2 not found"})
               } else if (player.socket == null) {
-                res.status(400).json({message: "Player 1 is not connected"})
+                res.status(400).json({message: "Player 2 is not connected"})
               } else {
                 player2 = player
-                return Game.findOne({players: player._id})
+                return Game.findOne({players: player._id, winner: null})
               }
             })
             .then((game) => {
               // check that player 2 is not in a game
               if (game != null) {
-                res.status(400).json({message: "Player 1 is in a game"})
+                res.status(400).json({message: "Player 2 is in a game"})
               } else {
                 // neither players are
                 return Game.startGame(player1, player2)

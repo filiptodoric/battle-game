@@ -2,12 +2,13 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const random = require('random-js')()
 const Move = require('./move')
-const io = require('socket.io')
+const express = require('express')
+const io = require('../socket/server').io()
 
 let gameSchema = new Schema({
   started: Date,
   finished: Date,
-  players: [{type: Schema.ObjectId, ref: 'players'}],
+  players: [{type: Schema.ObjectId, ref: 'player'}],
   current: Schema.ObjectId,
   winner: Schema.ObjectId
 }, {
@@ -21,13 +22,11 @@ let gameSchema = new Schema({
 
 gameSchema.methods.moveInTurn = function (playerId) {
   return new Promise((resolve, reject) => {
-    if (playerId !== this.current.toString()) {
+    if (playerId.toString() !== this.current.toString()) {
       let message = 'move made out of turn'
-      if (playerId === this.player1.id) {
-        io.sockets.connected[this.player1.socket].emit('invalid', message)
+      if (playerId.toString() === this.player1.id) {
         reject(message)
       } else {
-        io.sockets.connected[this.player2.socket].emit('invalid', message)
         reject(message)
       }
     } else {
@@ -64,8 +63,7 @@ gameSchema.methods.attack = function (playerId) {
 
       move.save()
           .then((doc) => {
-            this.moves.push(doc)
-            if (playerId === this.player1.id) {
+            if (playerId.toString() === this.player1.id) {
               // player 1 is attacking
               this.current = this.player2.id
               this.player2.health -= move.value
@@ -78,13 +76,16 @@ gameSchema.methods.attack = function (playerId) {
             }
           })
           .then((result) => {
+            return this.save()
+          })
+          .then((result) => {
             if (this.player1.health <= 0 || this.player2.health <= 0) {
-              this.gameOver(doc)
+              this.gameOver(move)
             } else {
-              io.sockets.connected[this.player1.socket].emit('move played', doc)
-              io.sockets.connected[this.player2.socket].emit('move played', doc)
+              io.sockets.connected[this.player1.socket].emit('move played', move)
+              io.sockets.connected[this.player2.socket].emit('move played', move)
             }
-            resolve(doc)
+            resolve(move)
           })
     }).catch(reject)
   })
@@ -104,8 +105,7 @@ gameSchema.methods.heal = function (playerId) {
 
       move.save()
           .then((doc) => {
-            this.moves.push(doc)
-            if (playerId === this.player1.id) {
+            if (playerId.toString() === this.player1.id) {
               // player 1 is healing
               this.current = this.player2.id
               this.player1.health += move.value
@@ -118,12 +118,15 @@ gameSchema.methods.heal = function (playerId) {
             }
           })
           .then((result) => {
-            io.sockets.connected[this.player1.socket].emit('move played', doc)
-            io.sockets.connected[this.player2.socket].emit('move played', doc)
-            resolve(doc)
+            return this.save()
           })
-    })
-  }).catch(reject)
+          .then((result) => {
+            io.sockets.connected[this.player1.socket].emit('move played', move)
+            io.sockets.connected[this.player2.socket].emit('move played', move)
+            resolve(move)
+          })
+    }).catch(reject)
+  })
 }
 
 gameSchema.methods.gameOver = function (finalMove) {
@@ -153,7 +156,6 @@ gameSchema.statics.startGame = function startGame(player1, player2) {
     else {
       let game = new this()
       game.started = Date.now()
-      game.moves = []
 
       game.players.push(player1.id)
       game.player1 = player1
