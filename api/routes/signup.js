@@ -12,58 +12,62 @@ router.route('/')
  *
  * @apiDescription Add a new player to the system
  * @apiParam {String} name The name for the player
+ * @apiParam {String="player","spectator"} [role="player"] The role
  *
- * @apiSuccess {Object} { id: The unique identifier for the players api id, apiSecret: The unique identifier for the players api secret }
+ * @apiSuccess (200) {Object} { apiId: The unique identifier for the players api id, apiSecret: The unique identifier for the players api secret }
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 201 Created
  *     {
      *       'apiId': '56a5652c55ab891352f11fd0',
      *       'apiSecret': '56a5652c55ab891352f11fd1'
      *     }
- * @apiError (400) BadRequest The name parameter was not specified or the specified name already exists
+ * @apiError (400) BadRequest The name parameter has not been specified
+ * @apiError (400) BadRequest The role specified is invalid
+ * @apiError (400) BadRequest A player already exists with the given name
  */
     .post((req, res) => {
       if (req.body.name == null) {
+        // a name has not been specified
         res.status(400).json({
           message: "post missing 'name' parameter"
         })
-        return
       } else if (req.body.role != null && req.body.role !== "player" && req.body.role !== "spectator") {
+        // an invalid role value has been specified.
         res.status(400).json({
           message: "invalid 'role' specified"
         })
-        return
       } else {
-        req.body.role = "player"
-      }
-      Player.find({name: req.body.name})
-          .then((result) => {
-            if (result.length > 0) {
-              res.status(400).json({
-                error: "player with name already exists"
-              })
-            } else {
-              var newPlayer = new Player()
-              newPlayer.name = req.body.name
-              newPlayer.role = req.body.role
-              newPlayer.apiId = uuid.v4()
-              newPlayer.apiSecret = uuid.v4()
-              newPlayer.maxSkills = 12
-              newPlayer.save().then((player) => {
-                res.status(201).json({
-                  apiId: player.apiId,
-                  apiSecret: player.apiSecret
+        // if no role has been specified, default to "player"
+        req.body.role = req.body.role != null ? req.body.role : "player"
+
+        Player.find({name: req.body.name})
+            .then((result) => {
+              if (result.length > 0) {
+                res.status(400).json({message: "player with name already exists"})
+              } else {
+                let player = new Player()
+                player.name = req.body.name
+                player.role = req.body.role
+                player.apiId = uuid.v4()
+                player.apiSecret = uuid.v4()
+                player.maxSkills = 12
+                player.save().then((player) => {
+                  res.status(201).json({
+                    apiId: player.apiId,
+                    apiSecret: player.apiSecret
+                  })
+                }).catch((err) => {
+                  console.error("Issue Creating Player On Signup", err)
+                  res.status(err.errorCode || 500).json({message: "Issue signing up player"})
                 })
-              }).catch((err) => {
-                console.error("Issue Creating Player On Signup", err)
-                res.status(err.errorCode || 500).json({error: "Issue signing up player"})
-              })
-            }
-          })
-          .catch((err) => {
-            console.error("Issue Searching For Player On Signup", err)
-            res.status(err.statusCode || 500).json({error: "Issue signing up player"})
-          })
+              }
+            })
+            .catch((err) => {
+              console.error("Issue Searching For Player On Signup", err)
+              res.status(err.statusCode || 500).json({message: "Issue signing up player"})
+            })
+      }
+
     })
 
 module.exports = router

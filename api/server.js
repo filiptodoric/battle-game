@@ -29,7 +29,7 @@ let checkAuthorization = (req, res, next) => {
     next()
   } else {
     if (!req.headers.authorization) {
-      res.status(401).json({error: 'API ID/Secret required'})
+      res.status(401).json({message: 'API ID/Secret required'})
     } else {
       var encoded = req.headers.authorization.split(' ')[1]
       var decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
