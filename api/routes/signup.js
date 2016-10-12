@@ -28,6 +28,13 @@ router.route('/')
           message: "post missing 'name' parameter"
         })
         return
+      } else if (req.body.role != null && req.body.role !== "player" && req.body.role !== "spectator") {
+        res.status(400).json({
+          message: "invalid 'role' specified"
+        })
+        return
+      } else {
+        req.body.role = "player"
       }
       Player.find({name: req.body.name})
           .then((result) => {
@@ -38,7 +45,7 @@ router.route('/')
             } else {
               var newPlayer = new Player()
               newPlayer.name = req.body.name
-              newPlayer.role = "player"
+              newPlayer.role = req.body.role
               newPlayer.apiId = uuid.v4()
               newPlayer.apiSecret = uuid.v4()
               newPlayer.maxSkills = 12
@@ -48,13 +55,13 @@ router.route('/')
                   apiSecret: player.apiSecret
                 })
               }).catch((err) => {
-                console.error("ISSUE CREATING PLAYER ON SIGNUP", err)
+                console.error("Issue Creating Player On Signup", err)
                 res.status(err.errorCode || 500).json({error: "Issue signing up player"})
               })
             }
           })
           .catch((err) => {
-            console.error("ISSUE SEARCHING FOR PLAYER ON SIGNUP", err)
+            console.error("Issue Searching For Player On Signup", err)
             res.status(err.statusCode || 500).json({error: "Issue signing up player"})
           })
     })

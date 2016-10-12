@@ -83,6 +83,7 @@ gameSchema.methods.attack = function (playerId) {
               this.gameOver(move)
             } else {
               io.to(this._id).emit('move played', move)
+              io.to("spectators").emit('move played', move)
             }
             resolve(move)
           })
@@ -121,6 +122,7 @@ gameSchema.methods.heal = function (playerId) {
           })
           .then((result) => {
             io.to(this._id).emit('move played', move)
+            io.to("spectators").emit('move played', move)
             resolve(move)
           })
     }).catch(reject)
@@ -143,6 +145,7 @@ gameSchema.methods.gameOver = function (finalMove) {
     }
     process.emit('game over', this)
     io.to(this._id).emit('game over', data)
+    io.to("spectators").emit('game over', data)
     io.sockets.connected[this.player1.socket].leave(this._id)
     io.sockets.connected[this.player2.socket].leave(this._id)
   })
@@ -177,6 +180,7 @@ gameSchema.statics.startGame = function startGame(player1, player2) {
             io.sockets.connected[player1.socket].join(doc._id)
             io.sockets.connected[player2.socket].join(doc._id)
             io.to(doc._id).emit('start game', { id: doc._id })
+            io.to("spectators").emit('start game', { id: doc._id })
             resolve(doc)
           })
           .catch((err) => {

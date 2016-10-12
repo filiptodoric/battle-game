@@ -38,6 +38,9 @@ exports.initialize = function() {
               .then((result) => {
                 console.log(thisPlayer.name, "has connected")
                 socket.emit("success", {id: thisPlayer.id})
+                if(thisPlayer.role === "spectator") {
+                  socket.join("spectators")
+                }
 
                 Game.findOne({ players: thisPlayer._id, winner: null })
                     .then((game) => {
