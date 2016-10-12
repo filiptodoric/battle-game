@@ -43,6 +43,7 @@ exports.initialize = function() {
                     .then((game) => {
                       if (game != null) {
                         socket.emit("in game", {id: game._id})
+                        socket.join(game.id)
                       }
                     })
               })
