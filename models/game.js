@@ -4,6 +4,7 @@ const random = require('random-js')()
 const Move = require('./move')
 const express = require('express')
 const io = require('../socket/server').io()
+const config = require('config')
 
 let gameSchema = new Schema({
   started: Date,
@@ -75,16 +76,10 @@ gameSchema.methods.attack = function (playerId) {
               return this.player1.save()
             }
           })
-          .then((result) => {
-            return this.save()
+          .then((player) => {
+            return this.postMove(move)
           })
-          .then((result) => {
-            if (this.player1.health <= 0 || this.player2.health <= 0) {
-              this.gameOver()
-            } else {
-              io.to(this._id).emit('move played', { id: move.id })
-              io.to("spectators").emit('move played', { id: move.id })
-            }
+          .then(() => {
             resolve(move)
           })
     }).catch(reject)
@@ -117,34 +112,90 @@ gameSchema.methods.heal = function (playerId) {
               return this.player2.save()
             }
           })
-          .then((result) => {
-            return this.save()
+          .then((player) => {
+            return this.postMove(move)
           })
-          .then((result) => {
-            io.to(this._id).emit('move played', { id: move.id })
-            io.to("spectators").emit('move played', { id: move.id })
+          .then(() => {
             resolve(move)
           })
     }).catch(reject)
   })
 }
 
-gameSchema.methods.gameOver = function () {
-  if (this.player1.health <= 0) {
-    // player 2 has won
-    this.winner = this.player2.id
-  } else {
-    this.winner = this.player1.id
-  }
-  this.current = null
-  this.finished = Date.now()
-  this.save((err, doc) => {
-    process.emit('game over', { id: this._id })
-    io.to(this._id).emit('game over', { id: this._id })
-    io.to("spectators").emit('game over', { id: this._id })
-    io.sockets.connected[this.player1.socket].leave(this._id)
-    io.sockets.connected[this.player2.socket].leave(this._id)
+gameSchema.methods.postMove = function (move) {
+  return new Promise((resolve, reject) => {
+    this.save()
+        .then((game) => {
+          if (this.player1.health <= 0 || this.player2.health <= 0) {
+            this.gameOver()
+            resolve()
+          } else {
+            Move.count({game: this._id})
+                .then((moveCount) => {
+                  if (moveCount >= config.maxMoves) {
+                    this.gameOver()
+                  } else {
+                    io.to(this._id).emit('move played', {id: move.id})
+                    io.to("spectators").emit('move played', {id: move.id})
+                  }
+                  resolve()
+                })
+          }
+        })
   })
+}
+
+gameSchema.methods.determineWinner = function () {
+  return new Promise((resolve, reject) => {
+    if (this.player1.health <= 0) {
+      this.winner = this.player2.id
+      resolve()
+    } else if (this.player2.health <= 0) {
+      this.winner = this.player1.id
+      resolve()
+    } else {
+      console.log("MAX MOVES REACHED")
+      let player1Sum
+      let player2Sum
+      Move.aggregate({ $match: { game: this._id,
+        player: this.player1._id, result: { $ne: "heal" } }},
+          { $group: { _id: null, total: { $sum: "$value"  } } })
+          .then((sum) => {
+            player1Sum = sum
+            return Move.aggregate({ $match: { game: this._id,
+                  player: this.player2._id, result: { $ne: "heal" } }},
+                { $group: { _id: null, total: { $sum: "$value"  } } })
+          })
+          .then((sum) => {
+            player2Sum = sum
+            if(player1Sum > player2Sum) {
+              this.winner = this.player1.id
+            } else if (player2Sum > player1Sum) {
+              this.winner = this.player2.id
+            } else if (this.player1.health > this.player2.health) {
+              this.winner = this.player1.id
+            } else {
+              this.winner = this.player2.id
+            }
+            resolve()
+          })
+    }
+  })
+}
+
+gameSchema.methods.gameOver = function () {
+  this.determineWinner()
+      .then(() => {
+        this.current = null
+        this.finished = Date.now()
+        this.save((err, doc) => {
+          process.emit('game over', {id: this._id})
+          io.to(this._id).emit('game over', {id: this._id})
+          io.to("spectators").emit('game over', {id: this._id})
+          io.sockets.connected[this.player1.socket].leave(this._id)
+          io.sockets.connected[this.player2.socket].leave(this._id)
+        })
+      })
 }
 
 gameSchema.statics.startGame = function startGame(player1, player2) {
@@ -175,8 +226,8 @@ gameSchema.statics.startGame = function startGame(player1, player2) {
           .then((doc) => {
             io.sockets.connected[player1.socket].join(doc._id)
             io.sockets.connected[player2.socket].join(doc._id)
-            io.to(doc._id).emit('start game', { id: doc._id })
-            io.to("spectators").emit('start game', { id: doc._id })
+            io.to(doc._id).emit('start game', {id: doc._id})
+            io.to("spectators").emit('start game', {id: doc._id})
             resolve(doc)
           })
           .catch((err) => {

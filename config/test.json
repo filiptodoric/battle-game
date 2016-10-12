@@ -1,5 +1,6 @@
 {
   "mongoConnection": "mongodb://localhost/battle-game-test",
   "socketPort": 3000,
-  "apiPort": 8080
+  "apiPort": 8080,
+  "maxMoves": 1000
 }
