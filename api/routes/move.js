@@ -24,53 +24,51 @@ router.route('/')
  */
     .post((req, res) => {
       if (req.body.action == null) {
-        res.status(400).json({
-          message: "post missing 'action' parameter"
-        })
-        return
+        res.status(400).json({message: "post missing 'action' parameter"})
+      } else {
+        Player.findOne({"_id": req.player._id})
+            .then((player) => {
+              Game.findOne({"players": player._id, winner: null})
+                  .populate('players')
+                  .then((game) => {
+                    if (game == null) {
+                      console.error("Issue retrieving game on move POST", err, game)
+                      res.status(500).json({message: "not in a game"})
+                    } else {
+                      if (req.body.action === "attack") {
+                        game.attack(player)
+                            .then((move) => {
+                              res.json(move)
+                            })
+                            .catch((error) => {
+                              console.error("error on attacking", error)
+                              res.status(500).json(error)
+                            })
+                      } else if (req.body.action == "heal") {
+                        game.heal(player)
+                            .then((move) => {
+                              res.json(move)
+                            })
+                            .catch((error) => {
+                              console.error("error on healing", error)
+                              res.status(500).json(error)
+                            })
+                      } else {
+                        console.error("player", player._id, "tried to play illegal move", req.body.action)
+                        res.status(400).json({message: "illegal move action passed"})
+                      }
+                    }
+                  })
+                  .catch((error) => {
+                    console.error("Issue retrieving game on move POST", error, game)
+                    res.status(error ? err.statusCode : 500).json({message: "processing of move failed"})
+                  })
+            })
+            .catch((error) => {
+              console.error("Issue retrieving player on move POST", error)
+              res.status(error.statusCode || 500).json({message: "processing of move failed"})
+            })
       }
-      Player.findOne({"_id": req.player._id}, (err, player) => {
-        if (err) {
-          console.error("Issue retrieving player on move POST", err)
-          res.status(err.statusCode || 500).json({message: "processing of move failed"})
-        } else {
-          Game.findOne({"players": player._id, winner: null})
-              .populate('players')
-              .then((game) => {
-                if (game == null) {
-                  console.error("Issue retrieving game on move POST", err, game)
-                  res.status(500).json({message: "not in a game"})
-                } else {
-                  if (req.body.action === "attack") {
-                    game.attack(player)
-                        .then((move) => {
-                          res.json(move)
-                        })
-                        .catch((error) => {
-                          console.log("error on attacking", error)
-                          res.status(500).json(error)
-                        })
-                  } else if (req.body.action == "heal") {
-                    game.heal(player)
-                        .then((move) => {
-                          res.json(move)
-                        })
-                        .catch((error) => {
-                          console.error("error on healing", error)
-                          res.status(500).json(error)
-                        })
-                  } else {
-                    console.warn("player", player._id, "tried to play illegal move", req.body.action)
-                    res.status(400).json({message: "illegal move action passed"})
-                  }
-                }
-              })
-              .catch((error) => {
-                console.error("Issue retrieving game on move POST", err, game)
-                res.status(err ? err.statusCode : 500).json({message: "processing of move failed"})
-              })
-        }
-      })
     })
     /**
      * @api {get} /players/ List Players
@@ -99,14 +97,14 @@ router.route('/')
      *     ]
      */
     .get((req, res) => {
-      Move.find((err, moves) => {
-        if (err) {
-          console.error("error retrieving list of moves", err)
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.json(moves)
-        }
-      })
+      Move.find()
+          .then((moves) => {
+            res.json(moves)
+          })
+          .catch((error) => {
+            console.error("error retrieving list of moves", error)
+            res.status(error.statusCode || 500).json(error)
+          })
     })
 
 router.route('/:id')
@@ -127,17 +125,17 @@ router.route('/:id')
      *     }
  */
     .delete((req, res) => {
-      Move.remove({
-        _id: req.params.id
-      }, function (err, move) {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.status(200).json({
-            message: 'record deleted'
-          })
-        }
-      })
+      if (req.player.role !== "admin") {
+        res.status(403).json({message: "you are not permitted to perform this action"})
+      } else {
+        Move.remove({_id: req.params.id})
+            .then((move) => {
+              res.status(200).json({message: 'record deleted'})
+            })
+            .catch((error) => {
+              res.status(error.statusCode || 500).json(error)
+            })
+      }
     })
     /**
      * @api {get} /players/:id Get Player Details
@@ -163,17 +161,19 @@ router.route('/:id')
      * @apiError (500) InternalServerError The identifier specified was invalid
      */
     .get((req, res) => {
-      Move.findById(req.params.id, function (err, move) {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else if (move == null) {
-          res.status(404).json({
-            message: 'record not found'
+      Move.findById(req.params.id)
+          .then((move) => {
+            if (move == null) {
+              res.status(404).json({
+                message: 'record not found'
+              })
+            } else {
+              res.json(move)
+            }
           })
-        } else {
-          res.json(move)
-        }
-      })
+          .catch((error) => {
+            res.status(error.statusCode || 500).json(error)
+          })
     })
 
 module.exports = router

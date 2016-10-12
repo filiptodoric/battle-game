@@ -21,24 +21,22 @@ router.route('/')
  * @apiError (400) BadRequest The text parameter was not specified
  */
     .post((req, res) => {
-      if (req.body.name == null) {
-        res.status(400).json({
-          message: "post missing 'name' parameter"
-        })
-        return
+      if (req.player.role !== "admin") {
+        res.status(403).json({message: "you are not permitted to perform this action"})
+      } else if (req.body.name == null) {
+        res.status(400).json({message: "post missing 'name' parameter"})
+      } else {
+        let player = new Player()
+        player.name = req.body.name
+        player.role = req.body.role != null ? req.body.role : "player"
+        player.save()
+            .then((player) => {
+              res.status(201).json({id: player._id})
+            })
+            .catch((error) => {
+              res.status(error.statusCode || 500).json(error)
+            })
       }
-      var newPlayer = new Player()
-      newPlayer.name = req.body.name
-      newPlayer.role = req.body.role != null ? req.body.role : "player"
-      newPlayer.save((err, player) => {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.status(201).json({
-            id: player._id
-          })
-        }
-      })
     })
     /**
      * @api {get} /players/ List Players
@@ -67,13 +65,13 @@ router.route('/')
      *     ]
      */
     .get((req, res) => {
-      Player.find((err, players) => {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.json(players)
-        }
-      })
+      Player.find()
+          .then((players) => {
+            res.json(players)
+          })
+          .catch((error) => {
+            res.status(error.statusCode || 500).json(error)
+          })
     })
 
 router.route('/active')
@@ -102,17 +100,17 @@ router.route('/:id')
      *     }
  */
     .delete((req, res) => {
-      Player.remove({
-        _id: req.params.id
-      }, function (err, player) {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.status(200).json({
-            message: 'record deleted'
-          })
-        }
-      })
+      if (req.player.role !== "admin") {
+        res.status(403).json({message: "you are not permitted to perform this action"})
+      } else {
+        Player.remove({_id: req.params.id})
+            .then((player) => {
+              res.status(200).json({message: 'record deleted'})
+            })
+            .catch((error) => {
+              res.status(error.statusCode || 500).json(error)
+            })
+      }
     })
     /**
      * @api {get} /players/:id Get Player Details
@@ -138,17 +136,17 @@ router.route('/:id')
      * @apiError (500) InternalServerError The identifier specified was invalid
      */
     .get((req, res) => {
-      Player.findById(req.params.id, function (err, player) {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else if (player == null) {
-          res.status(404).json({
-            message: 'record not found'
+      Player.findById(req.params.id)
+          .then((player) => {
+            if (player == null) {
+              res.status(404).json({message: 'record not found'})
+            } else {
+              res.json(player)
+            }
           })
-        } else {
-          res.json(player)
-        }
-      })
+          .catch((error) => {
+            res.status(error.statusCode || 500).json(error)
+          })
     })
     .post((req, res) => {
       if (req.params.id !== req.player.id.toString() && req.player.role !== "admin") {
