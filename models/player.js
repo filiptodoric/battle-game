@@ -8,11 +8,11 @@ let playerSchema = new Schema({
   apiSecret: String,
   socket: String,
   health: Number,
-  maxSkills: { type: Number, default: 0 },
+  maxSkills: {type: Number, default: 0},
   skills: {
-    strength: { type: Number, default: 0 },
-    agility: { type: Number, default: 0 },
-    distraction: { type: Number, default: 0 }
+    strength: {type: Number, default: 0},
+    agility: {type: Number, default: 0},
+    distraction: {type: Number, default: 0}
   }
 }, {
   toObject: {
@@ -21,15 +21,15 @@ let playerSchema = new Schema({
   toJSON: {
     virtuals: false
   }
-})
+}, {versionKey: false})
 
-playerSchema.methods.addSkills = function(skills) {
-  if(skills != null) {
-    if(skills.strength != null)
+playerSchema.methods.addSkills = function (skills) {
+  if (skills != null) {
+    if (skills.strength != null)
       this.skills.strength = skills.strength
-    if(skills.agility != null)
+    if (skills.agility != null)
       this.skills.agility = skills.agility
-    if(skills.distraction != null)
+    if (skills.distraction != null)
       this.skills.distraction = skills.distraction
   }
 }

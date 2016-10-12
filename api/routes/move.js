@@ -12,15 +12,21 @@ router.route('/')
  * @apiVersion 1.0.0
  *
  * @apiDescription Add a new move to the system
- * @apiParam {String} name The name for the move
+ * @apiParam {String="attack","heal"} action The name for the move
  *
  * @apiSuccess {ObjectID} id The unique identifier for the move
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 201 Created
  *     {
-     *       'id': '56a5652c55ab891352f11fd0'
-     *     }
- * @apiError (400) BadRequest The text parameter was not specified
+ *       'id': '56a5652c55ab891352f11fd0'
+ *     }
+ * @apiError (400) BadRequest The action parameter was not specified
+ * @apiError (400) BadRequest An illegal move action was specified
+ * @apiError (500) InternalServerError The player is not in a game
+ * @apiError (500) InternalServerError There was an issue attacking
+ * @apiError (500) InternalServerError There was an issue healing
+ * @apiError (500) InternalServerError There was an issue retrieving the player
+ * @apiError (500) InternalServerError There was an issue retrieving the game
  */
     .post((req, res) => {
       if (req.body.action == null) {
@@ -71,30 +77,43 @@ router.route('/')
       }
     })
     /**
-     * @api {get} /players/ List Players
-     * @apiName ListPlayers
-     * @apiGroup Player
+     * @api {get} /moves/ List Moves
+     * @apiName ListMoves
+     * @apiGroup Move
      * @apiVersion 1.0.0
      *
-     * @apiDescription List all players in the system
-     * @apiSuccess {Object[]} players A list of players
-     * @apiSuccess {ObjectID} players._id The unique identifier for the player
-     * @apiSuccess {String} players.name The player name
-     * @apiSuccess {String} players.role The player role
+     * @apiDescription List all moves in the system
+     * @apiSuccess {Object[]} moves A list of players
+     * @apiSuccess {ObjectID} moves._id The unique identifier for the move
+     * @apiSuccess {Number} moves.value The end value of the move
+     * @apiSuccess {String} moves.result The resulting action of the move
+     * @apiSuccess {ObjectID} moves.game The unique identifier of the game the move was performed in
+     * @apiSuccess {ObjectID} moves.player The player that played the action
+     * @apiSuccess {String} moves.action The action requested by the player
+     * @apiSuccess {Date} moves.received The time the move was created
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     [
      *       {
-     *         '_id': '56a5652c55ab891352f11fd0',
-     *         'name': 'Qlikachu',
-     *         'role': 'player'
+     *         "_id": "57fe864c097a46a65427d45e",
+     *         "value": 10,
+     *         "result": "hit",
+     *         "game": "57fe85fe68713f95549aed06",
+     *         "player": "57fd89cc6221be8340c09f34",
+     *         "action": "attack",
+     *         "received": "2016-10-12T18:51:56.017Z"
      *       },
      *       {
-     *         '_id': '56a5652c55ab891352f11fd5',
-     *         'name': 'Qlikasaur',
-     *         'role': 'player'
+     *         "_id": "57fe864f097a46a65427d45f",
+     *         "value": 24,
+     *         "result": "hit",
+     *         "game": "57fe85fe68713f95549aed06",
+     *         "player": "57fd8a266221be8340c09f35",
+     *         "action": "attack",
+     *         "received": "2016-10-12T18:51:59.063Z"
      *       }
      *     ]
+     * @apiError (500) InternalServerError There was an issue retrieving the list of moves
      */
     .get((req, res) => {
       Move.find()
@@ -109,20 +128,22 @@ router.route('/')
 
 router.route('/:id')
 /**
- * @api {delete} /players/:id Delete Player
- * @apiName DeletePlayer
- * @apiGroup Player
+ * @api {delete} /players/:id Delete Move
+ * @apiName DeleteMove
+ * @apiGroup Move
  * @apiVersion 1.0.0
  *
- * @apiDescription Delete a player from the system
- * @apiParam {ObjectID} :id The unique identifier for the player
+ * @apiDescription Delete a move from the system
+ * @apiParam {ObjectID} :id The unique identifier for the move
  *
- * @apiSuccess {String} player The player 'record deleted'
+ * @apiSuccess {String} message The message 'record deleted'
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     {
      *       'message': 'record deleted'
      *     }
+ * @apiError (403) Forbidden The user does not have permission to perform this action
+ * @apiError (500) InternalServerError There was an issue removing the move
  */
     .delete((req, res) => {
       if (req.player.role !== "admin") {
@@ -138,27 +159,34 @@ router.route('/:id')
       }
     })
     /**
-     * @api {get} /players/:id Get Player Details
-     * @apiName GetPlayer
-     * @apiGroup Player
+     * @api {get} /moves/ Get Move Details
+     * @apiName GetMove
+     * @apiGroup Move
      * @apiVersion 1.0.0
      *
-     * @apiDescription Give details about a player in the system
-     * @apiParam {ObjectID} :id The unique identifier for the player
-     *
-     * @apiSuccess {Object} player The requested player
-     * @apiSuccess {ObjectID} player._id The unique identifier for the player
-     * @apiSuccess {String} player.name The player name
-     * @apiSuccess {Boolean} player.role The player role
+     * @apiDescription Get details about a move in the system
+     * @apiParam {ObjectID} :id The unique identifier for the move
+     * @apiSuccess {Object} move The requested move
+     * @apiSuccess {ObjectID} move._id The unique identifier for the move
+     * @apiSuccess {Number} move.value The end value of the move
+     * @apiSuccess {String} move.result The resulting action of the move
+     * @apiSuccess {ObjectID} move.game The unique identifier of the game the move was performed in
+     * @apiSuccess {ObjectID} move.player The player that played the action
+     * @apiSuccess {String} move.action The action requested by the player
+     * @apiSuccess {Date} move.received The time the move was created
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
-     *     {
-     *       '_id': '56a5652c55ab891352f11fd0',
-     *       'name': 'Qlikachu'
-     *       'role': 'player'
-     *     }
-     * @apiError (404) NotFound The requested player was not found
-     * @apiError (500) InternalServerError The identifier specified was invalid
+     *       {
+     *         "_id": "57fe864c097a46a65427d45e",
+     *         "value": 10,
+     *         "result": "hit",
+     *         "game": "57fe85fe68713f95549aed06",
+     *         "player": "57fd89cc6221be8340c09f34",
+     *         "action": "attack",
+     *         "received": "2016-10-12T18:51:56.017Z"
+     *       }
+     * @apiError (404) NotFound The move was not found
+     * @apiError (500) InternalServerError There was an issue retrieving the move
      */
     .get((req, res) => {
       Move.findById(req.params.id)

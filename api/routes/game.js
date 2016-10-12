@@ -15,23 +15,42 @@ router.route('/')
  * @apiSuccess {ObjectID} games._id The unique identifier for the game
  * @apiSuccess {Date} games.started The game start date/time
  * @apiSuccess {Date} games.finished The game finish date/time
- * @apiSuccess {Array} games.players The game players
+ * @apiSuccess {ObjectId[]} games.players The game players
  * @apiSuccess {String} games.current The player whose current move it is
  * @apiSuccess {String} games.winner The game winner
+ * @apiSuccess {ObjectID} games.player1 The unique identifier of the first player
+ * @apiSuccess {ObjectID} games.player2 The unique identifier of the second player
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     [
  *       {
-     *         '_id': '56a5652c55ab891352f11fd0',
-     *         'name': 'Qlikachu',
-     *         'role': 'player'
-     *       },
+ *         "_id": "57fe85fe68713f95549aed06",
+ *         "current": null,
+ *         "started": "2016-10-12T18:50:38.739Z",
+ *         "finished": "2016-10-12T18:51:59.390Z",
+ *         "winner": "57fd89cc6221be8340c09f34",
+ *         "players": [
+ *           "57fd89cc6221be8340c09f34",
+ *           "57fd8a266221be8340c09f35"
+ *         ],
+ *         "player2": "57fd8a266221be8340c09f35",
+ *         "player1": "57fd89cc6221be8340c09f34"
+ *       },
  *       {
-     *         '_id': '56a5652c55ab891352f11fd5',
-     *         'name': 'Qlikasaur',
-     *         'role': 'player'
-     *       }
+ *         "_id": "57fe868f9e30dcc754a2127c",
+ *         "current": null,
+ *         "started": "2016-10-12T18:53:03.161Z",
+ *         "finished": "2016-10-12T18:53:07.124Z",
+ *         "winner": "57fd89cc6221be8340c09f34",
+ *         "players": [
+ *           "57fd89cc6221be8340c09f34",
+ *           "57fd8a266221be8340c09f35"
+ *         ],
+ *         "player2": "57fd8a266221be8340c09f35",
+ *         "player1": "57fd89cc6221be8340c09f34"
+ *       }
  *     ]
+ * @apiError (500) InternalServerError There was an issue retrieving the list of games
  */
     .get((req, res) => {
       Game.find()
@@ -42,6 +61,34 @@ router.route('/')
             res.status(error.statusCode || 500).json(error)
           })
     })
+    /**
+     * @api {post} /games/ Add Game
+     * @apiName AddGame
+     * @apiGroup Game
+     * @apiVersion 1.0.0
+     *
+     * @apiDescription Add a new game to the system
+     * @apiParam {ObjectID} player1 The first player
+     * @apiParam {ObjectID} player2 The second player
+     *
+     * @apiSuccess {ObjectID} id The unique identifier for the player
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 201 Created
+     *     {
+     *       'id': '56a5652c55ab891352f11fd0'
+     *     }
+     * @apiError (403) Forbidden The user does not have permission to perform this action
+     * @apiError (400) BadRequest The player1 and/or player2 parameters were not specified
+     * @apiError (400) BadRequest Player 1 could not be found
+     * @apiError (400) BadRequest Player 1 is not connected
+     * @apiError (400) BadRequest Player 1 is a spectator
+     * @apiError (400) BadRequest Player 1 is in a game
+     * @apiError (400) BadRequest Player 2 could not be found
+     * @apiError (400) BadRequest Player 2 is not connected
+     * @apiError (400) BadRequest Player 2 is a spectator
+     * @apiError (400) BadRequest Player 2 is in a game
+     * @apiError (500) InternalServerError There was an issue starting the game
+     */
     .post((req, res) => {
       if (req.player.role !== "admin") {
         res.status(403).json({message: "you are not permitted to perform this action"})
@@ -96,7 +143,7 @@ router.route('/')
               }
             })
             .then((game) => {
-              res.status(201).json(game)
+              res.status(201).json({ id: game._id })
             })
             .catch((error) => {
               res.status(500).json({message: "there was an issue starting a game"})
@@ -134,8 +181,9 @@ router.route('/:id')
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     {
-     *       'message': 'record deleted'
-     *     }
+ *       'message': 'record deleted'
+ *     }
+ * @apiError (500) InternalServerError There was an issue removing the game
  */
     .delete((req, res) => {
       Game.remove({_id: req.params.id})
@@ -157,21 +205,32 @@ router.route('/:id')
      * @apiDescription Give details about a game in the system
      * @apiParam {ObjectID} :id The unique identifier for the game
      *
+     * @apiSuccess {Object} game The requested game
      * @apiSuccess {ObjectID} game._id The unique identifier for the game
      * @apiSuccess {Date} game.started The game start date/time
      * @apiSuccess {Date} game.finished The game finish date/time
-     * @apiSuccess {Array} game.players The game players
+     * @apiSuccess {ObjectId[]} game.players The game players
      * @apiSuccess {String} game.current The player whose current move it is
      * @apiSuccess {String} game.winner The game winner
+     * @apiSuccess {ObjectID} game.player1 The unique identifier of the first player
+     * @apiSuccess {ObjectID} game.player2 The unique identifier of the second player
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
-     *       '_id': '56a5652c55ab891352f11fd0',
-     *       'name': 'Qlikachu'
-     *       'role': 'player'
+     *       "_id": "57fe85fe68713f95549aed06",
+     *       "current": null,
+     *       "started": "2016-10-12T18:50:38.739Z",
+     *       "finished": "2016-10-12T18:51:59.390Z",
+     *       "winner": "57fd89cc6221be8340c09f34",
+     *       "players": [
+     *         "57fd89cc6221be8340c09f34",
+     *         "57fd8a266221be8340c09f35"
+     *       ],
+     *       "player2": "57fd8a266221be8340c09f35",
+     *       "player1": "57fd89cc6221be8340c09f34"
      *     }
-     * @apiError (404) NotFound The requested player was not found
-     * @apiError (500) InternalServerError The identifier specified was invalid
+     * @apiError (404) NotFound The requested game was not found
+     * @apiError (500) InternalServerError There was an issue retrieving the game
      */
     .get((req, res) => {
       Game.findById(req.params.id)

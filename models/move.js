@@ -8,6 +8,6 @@ let moveSchema = new Schema({
   result: String,
   value: Number,
   received: Date
-})
+}, {versionKey: false})
 
 module.exports = mongoose.model('move', moveSchema)

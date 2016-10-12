@@ -19,7 +19,7 @@ let gameSchema = new Schema({
   toJSON: {
     virtuals: true
   }
-})
+}, {versionKey: false})
 
 gameSchema.methods.moveInTurn = function (playerId) {
   return new Promise((resolve, reject) => {
