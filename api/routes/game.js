@@ -35,13 +35,13 @@ router.route('/')
  *     ]
  */
     .get((req, res) => {
-      Game.find((err, games) => {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.json(games)
-        }
-      })
+      Game.find()
+          .then((games) => {
+            res.json(games)
+          })
+          .catch((error) => {
+            res.status(error.statusCode || 500).json(error)
+          })
     })
     .post((req, res) => {
       if (req.player.role !== "admin") {
@@ -59,9 +59,11 @@ router.route('/')
                 res.status(400).json({message: "Player 1 not found"})
               } else if (player.socket == null) {
                 res.status(400).json({message: "Player 1 is not connected"})
+              } else if (player.role === "spectator") {
+                res.status(400).json({message: "Player 1 is a spectator"})
               } else {
                 player1 = player
-                return Game.findOne({players: player._id, winner: null })
+                return Game.findOne({players: player._id, winner: null})
               }
             })
             .then((game) => {
@@ -78,6 +80,8 @@ router.route('/')
                 res.status(400).json({message: "Player 2 not found"})
               } else if (player.socket == null) {
                 res.status(400).json({message: "Player 2 is not connected"})
+              } else if (player.role === "spectator") {
+                res.status(400).json({message: "Player 2 is a spectator"})
               } else {
                 player2 = player
                 return Game.findOne({players: player._id, winner: null})
@@ -135,17 +139,15 @@ router.route('/:id')
      *     }
  */
     .delete((req, res) => {
-      Game.remove({
-        _id: req.params.id
-      }, function (err, game) {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else {
-          res.status(200).json({
-            message: 'record deleted'
+      Game.remove({_id: req.params.id})
+          .then((game) => {
+            res.status(200).json({
+              message: 'record deleted'
+            })
           })
-        }
-      })
+          .catch((error) => {
+            res.status(error.statusCode || 500).json(error)
+          })
     })
     /**
      * @api {get} /games/:id Get Game Details
@@ -173,23 +175,19 @@ router.route('/:id')
      * @apiError (500) InternalServerError The identifier specified was invalid
      */
     .get((req, res) => {
-      Game.findById(req.params.id, function (err, game) {
-        if (err) {
-          res.status(err.statusCode || 500).json(err)
-        } else if (game == null) {
-          res.status(404).json({
-            message: 'record not found'
+      Game.findById(req.params.id)
+          .then((game) => {
+            if (game == null) {
+              res.status(404).json({
+                message: 'record not found'
+              })
+            } else {
+              res.json(game)
+            }
           })
-        } else {
-          game.moves = []
-          Move.find({
-            game: game.id
-          }, (err, moves) => {
-            game.moves = moves
-            res.json(game)
+          .catch((error) => {
+            res.status(error.statusCode || 500).json(error)
           })
-        }
-      })
     })
 
 module.exports = router
