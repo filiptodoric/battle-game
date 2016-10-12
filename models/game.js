@@ -98,7 +98,7 @@ gameSchema.methods.heal = function (playerId) {
         game: this.id,
         player: playerId,
         action: 'heal',
-        result: 'healed',
+        result: 'heal',
         value: random.integer(10, 30),
         received: Date.now()
       })
