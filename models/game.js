@@ -36,22 +36,25 @@ gameSchema.methods.moveInTurn = function (playerId) {
   })
 }
 
-gameSchema.methods.attack = function (playerId) {
+gameSchema.methods.attack = function (player) {
   return new Promise((resolve, reject) => {
-    this.moveInTurn(playerId).then(() => {
+    this.moveInTurn(player._id).then(() => {
+      let opponent = this.player1._id.toString() === player._id.toString() ? this.player2 : this.player1
       const move = new Move({
         game: this.id,
-        player: playerId,
+        player: player._id,
         action: 'attack',
         received: Date.now()
       })
+      let chanceOfMiss = 10 + opponent.skills.distraction + (opponent.skills.agility * 0.5)
+      let chanceOfCritical = 10 + (player.skills.strength) + (player.skills.agility * 0.5)
 
-      if (random.bool(1, 10)) {
+      if (random.bool(chanceOfMiss, 100)) {
         // missed
         move.result = 'miss'
         move.value = 0
       } else {
-        if (random.bool(1, 10)) {
+        if (random.bool(chanceOfCritical, 100)) {
           // critical hit
           move.result = 'critical'
           move.value = random.integer(31, 50)
@@ -64,17 +67,9 @@ gameSchema.methods.attack = function (playerId) {
 
       move.save()
           .then((doc) => {
-            if (playerId.toString() === this.player1.id) {
-              // player 1 is attacking
-              this.current = this.player2.id
-              this.player2.health -= move.value
-              return this.player2.save()
-            } else {
-              // player 2 is attacking
-              this.current = this.player1.id
-              this.player1.health -= move.value
-              return this.player1.save()
-            }
+            this.current = opponent.id
+            opponent.health -= move.value
+            return opponent.save()
           })
           .then((player) => {
             return this.postMove(move)
@@ -86,12 +81,13 @@ gameSchema.methods.attack = function (playerId) {
   })
 }
 
-gameSchema.methods.heal = function (playerId) {
+gameSchema.methods.heal = function (player) {
   return new Promise((resolve, reject) => {
-    this.moveInTurn(playerId).then(() => {
+    this.moveInTurn(player._id).then(() => {
+      let opponent = this.player1._id.toString() === player._id.toString() ? this.player2 : this.player1
       const move = new Move({
         game: this.id,
-        player: playerId,
+        player: player._id,
         action: 'heal',
         result: 'heal',
         value: random.integer(10, 30),
@@ -100,17 +96,9 @@ gameSchema.methods.heal = function (playerId) {
 
       move.save()
           .then((doc) => {
-            if (playerId.toString() === this.player1.id) {
-              // player 1 is healing
-              this.current = this.player2.id
-              this.player1.health += move.value
-              return this.player1.save()
-            } else {
-              // player 2 is healing
-              this.current = this.player1.id
-              this.player2.health += move.value
-              return this.player2.save()
-            }
+            this.current = opponent.id
+            player.health += move.value
+            return player.save()
           })
           .then((player) => {
             return this.postMove(move)
@@ -156,18 +144,26 @@ gameSchema.methods.determineWinner = function () {
     } else {
       let player1Sum
       let player2Sum
-      Move.aggregate({ $match: { game: this._id,
-        player: this.player1._id, result: { $ne: "heal" } }},
-          { $group: { _id: null, total: { $sum: "$value"  } } })
+      Move.aggregate({
+            $match: {
+              game: this._id,
+              player: this.player1._id, result: {$ne: "heal"}
+            }
+          },
+          {$group: {_id: null, total: {$sum: "$value"}}})
           .then((sum) => {
             player1Sum = sum
-            return Move.aggregate({ $match: { game: this._id,
-                  player: this.player2._id, result: { $ne: "heal" } }},
-                { $group: { _id: null, total: { $sum: "$value"  } } })
+            return Move.aggregate({
+                  $match: {
+                    game: this._id,
+                    player: this.player2._id, result: {$ne: "heal"}
+                  }
+                },
+                {$group: {_id: null, total: {$sum: "$value"}}})
           })
           .then((sum) => {
             player2Sum = sum
-            if(player1Sum > player2Sum) {
+            if (player1Sum > player2Sum) {
               this.winner = this.player1.id
             } else if (player2Sum > player1Sum) {
               this.winner = this.player2.id

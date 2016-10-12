@@ -42,7 +42,7 @@ router.route('/')
                   res.status(500).json({message: "not in a game"})
                 } else {
                   if (req.body.action === "attack") {
-                    game.attack(player._id)
+                    game.attack(player)
                         .then((move) => {
                           res.json(move)
                         })
@@ -51,7 +51,7 @@ router.route('/')
                           res.status(500).json(error)
                         })
                   } else if (req.body.action == "heal") {
-                    game.heal(player._id)
+                    game.heal(player)
                         .then((move) => {
                           res.json(move)
                         })
