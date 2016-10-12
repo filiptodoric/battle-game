@@ -154,7 +154,6 @@ gameSchema.methods.determineWinner = function () {
       this.winner = this.player1.id
       resolve()
     } else {
-      console.log("MAX MOVES REACHED")
       let player1Sum
       let player2Sum
       Move.aggregate({ $match: { game: this._id,
