@@ -13,7 +13,8 @@ To get up and running please follow the following steps
     {
       "mongoConnection": <connection string to the mongo db>,
       "socketPort": <which port for players to connect to via WebSocket>,
-      "apiPort": <which port for admins to connect to via REST API>
+      "apiPort": <which port for admins to connect to via REST API>,
+      "maxMoves": <the maximum number of moves allowed for a game>
     }
 ```
 
