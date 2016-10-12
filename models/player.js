@@ -6,6 +6,8 @@ let playerSchema = new Schema({
   role: String,
   apiId: String,
   apiSecret: String,
+  socket: String,
+  health: Number,
   maxSkills: { type: Number, default: 0 },
   skills: {
     strength: { type: Number, default: 0 },
@@ -31,17 +33,5 @@ playerSchema.methods.addSkills = function(skills) {
       this.skills.distraction = skills.distraction
   }
 }
-
-playerSchema.virtual('socket').get(function () {
-  return this.__socket
-}).set(function (val) {
-  this.__socket = val
-})
-
-playerSchema.virtual('health').get(function () {
-  return this.__health
-}).set(function (val) {
-  this.__health = val
-})
 
 module.exports = mongoose.model('player', playerSchema)

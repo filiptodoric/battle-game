@@ -2,11 +2,12 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const random = require('random-js')()
 const Move = require('./move')
+const io = require('socket.io')
 
 let gameSchema = new Schema({
   started: Date,
   finished: Date,
-  players: [Schema.ObjectId],
+  players: [{type: Schema.ObjectId, ref: 'players'}],
   current: Schema.ObjectId,
   winner: Schema.ObjectId
 }, {
@@ -23,10 +24,10 @@ gameSchema.methods.moveInTurn = function (playerId) {
     if (playerId !== this.current.toString()) {
       let message = 'move made out of turn'
       if (playerId === this.player1.id) {
-        this.player1.socket.emit('invalid', message)
+        io.sockets.connected[this.player1.socket].emit('invalid', message)
         reject(message)
       } else {
-        this.player2.socket.emit('invalid', message)
+        io.sockets.connected[this.player2.socket].emit('invalid', message)
         reject(message)
       }
     } else {
@@ -61,26 +62,30 @@ gameSchema.methods.attack = function (playerId) {
         }
       }
 
-      move.save((err, doc) => {
-        this.moves.push(doc)
-        if (playerId === this.player1.id) {
-          // player 1 is attacking
-          this.current = this.player2.id
-          this.player2.health -= move.value
-        } else {
-          // player 2 is attacking
-          this.current = this.player1.id
-          this.player1.health -= move.value
-        }
-        if (this.player1.health <= 0 || this.player2.health <= 0) {
-
-          this.gameOver(doc)
-        } else {
-          this.player1.socket.emit('move played', doc)
-          this.player2.socket.emit('move played', doc)
-        }
-        resolve(doc)
-      })
+      move.save()
+          .then((doc) => {
+            this.moves.push(doc)
+            if (playerId === this.player1.id) {
+              // player 1 is attacking
+              this.current = this.player2.id
+              this.player2.health -= move.value
+              return this.player2.save()
+            } else {
+              // player 2 is attacking
+              this.current = this.player1.id
+              this.player1.health -= move.value
+              return this.player1.save()
+            }
+          })
+          .then((result) => {
+            if (this.player1.health <= 0 || this.player2.health <= 0) {
+              this.gameOver(doc)
+            } else {
+              io.sockets.connected[this.player1.socket].emit('move played', doc)
+              io.sockets.connected[this.player2.socket].emit('move played', doc)
+            }
+            resolve(doc)
+          })
     }).catch(reject)
   })
 }
@@ -91,29 +96,34 @@ gameSchema.methods.heal = function (playerId) {
       const move = new Move({
         game: this.id,
         player: playerId,
-        action: 'attack',
+        action: 'heal',
         result: 'healed',
         value: random.integer(10, 30),
         received: Date.now()
       })
 
-      move.save((err, doc) => {
-        this.moves.push(doc)
-        if (playerId === this.player1.id) {
-          // player 1 is healing
-          this.current = this.player2.id
-          this.player1.health += move.value
-        } else {
-          // player 2 is healing
-          this.current = this.player1.id
-          this.player2.health += move.value
-        }
-        this.player1.socket.emit('move played', doc)
-        this.player2.socket.emit('move played', doc)
-        resolve(doc)
-      })
-    }).catch(reject)
-  })
+      move.save()
+          .then((doc) => {
+            this.moves.push(doc)
+            if (playerId === this.player1.id) {
+              // player 1 is healing
+              this.current = this.player2.id
+              this.player1.health += move.value
+              return this.player1.save()
+            } else {
+              // player 2 is healing
+              this.current = this.player1.id
+              this.player2.health += move.value
+              return this.player2.save()
+            }
+          })
+          .then((result) => {
+            io.sockets.connected[this.player1.socket].emit('move played', doc)
+            io.sockets.connected[this.player2.socket].emit('move played', doc)
+            resolve(doc)
+          })
+    })
+  }).catch(reject)
 }
 
 gameSchema.methods.gameOver = function (finalMove) {
@@ -131,10 +141,8 @@ gameSchema.methods.gameOver = function (finalMove) {
       winningMove: finalMove
     }
     process.emit('game over', this)
-    this.player1.socket.game = null
-    this.player2.socket.game = null
-    this.player1.socket.emit('game over', data)
-    this.player2.socket.emit('game over', data)
+    io.sockets.connected[this.player1.socket].emit('game over', data)
+    io.sockets.connected[this.player2.socket].emit('game over', data)
   })
 }
 
@@ -156,28 +164,33 @@ gameSchema.statics.startGame = function startGame(player1, player2) {
       player2.health = 100
 
       game.current = player1.id
-      game.save((err, doc) => {
-        if (err) {
-          console.error("Issue saving game to db", err)
-          reject("Error saving game to database")
-        } else {
-          resolve(game)
-        }
-      })
+
+      player1.save()
+          .then((result) => {
+            return player2.save()
+          })
+          .then((result) => {
+            return game.save()
+          })
+          .then((doc) => {
+            io.sockets.connected[player1.socket].emit('start game', { id: doc._id })
+            io.sockets.connected[player2.socket].emit('start game', { id: doc._id })
+            resolve(doc)
+          })
+          .catch((err) => {
+            console.error("Issue starting game", err)
+            reject("Error starting game")
+          })
     }
   })
 }
 
 gameSchema.virtual('player1').get(function () {
-  return this.__player1
-}).set(function (val) {
-  this.__player1 = val
+  return this.players[0]
 })
 
 gameSchema.virtual('player2').get(function () {
-  return this.__player2
-}).set(function (val) {
-  this.__player2 = val
+  return this.players[1]
 })
 
 gameSchema.virtual('moves').get(function () {

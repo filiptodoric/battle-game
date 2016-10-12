@@ -60,9 +60,9 @@ describe('Games', () => {
           .set("Authorization", authorizationHeader)
           .send()
           .end((err, res) => {
-            res.should.have.status(500)
+            res.should.have.status(400)
             res.body.should.be.a('object')
-            res.body.should.have.property('message').eql("Not enough players available to play")
+            res.body.should.have.property('message').eql("'player1' and 'player2' must be specified")
             done()
           })
     })
