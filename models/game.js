@@ -82,8 +82,8 @@ gameSchema.methods.attack = function (playerId) {
             if (this.player1.health <= 0 || this.player2.health <= 0) {
               this.gameOver(move)
             } else {
-              io.to(this._id).emit('move played', move)
-              io.to("spectators").emit('move played', move)
+              io.to(this._id).emit('move played', { id: move.id })
+              io.to("spectators").emit('move played', { id: move.id })
             }
             resolve(move)
           })
@@ -121,8 +121,8 @@ gameSchema.methods.heal = function (playerId) {
             return this.save()
           })
           .then((result) => {
-            io.to(this._id).emit('move played', move)
-            io.to("spectators").emit('move played', move)
+            io.to(this._id).emit('move played', { id: move.id })
+            io.to("spectators").emit('move played', { id: move.id })
             resolve(move)
           })
     }).catch(reject)
@@ -143,9 +143,9 @@ gameSchema.methods.gameOver = function (finalMove) {
       game: this,
       winningMove: finalMove
     }
-    process.emit('game over', this)
-    io.to(this._id).emit('game over', data)
-    io.to("spectators").emit('game over', data)
+    process.emit('game over', { id: this._id })
+    io.to(this._id).emit('game over', { id: this._id })
+    io.to("spectators").emit('game over', { id: this._id })
     io.sockets.connected[this.player1.socket].leave(this._id)
     io.sockets.connected[this.player2.socket].leave(this._id)
   })
