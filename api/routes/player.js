@@ -12,15 +12,15 @@ router.route('/')
  * @apiDescription Add a new player to the system
  * @apiParam {String} name The name for the player
  *
- * @apiSuccess {ObjectID} id The unique identifier for the player
+ * @apiSuccess (201) {ObjectID} id The unique identifier for the player
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 201 Created
  *     {
  *       'id': '56a5652c55ab891352f11fd0'
  *     }
  * @apiError (403) Forbidden The user does not have permission to perform this action
- * @apiError (400) BadRequest The name parameter was not specified
- * @apiError (500) InternalServerError There was an issue saving the player
+ * @apiError (400) ParameterNotSpecified The name parameter was not specified
+ * @apiError (500) MongoSaveError There was an issue saving the player
  */
     .post((req, res) => {
       if (req.player.role !== "admin") {
@@ -47,17 +47,17 @@ router.route('/')
      * @apiVersion 1.0.0
      *
      * @apiDescription List all players in the system
-     * @apiSuccess {Object[]} players A list of players
-     * @apiSuccess {ObjectID} players._id The unique identifier for the player
-     * @apiSuccess {String} players.apiSecret The player api secret
-     * @apiSuccess {String} players.apiId The player api id
-     * @apiSuccess {String} players.name The player name
-     * @apiSuccess {String} players.role The player role
-     * @apiSuccess {Object} players.skills The player skills
-     * @apiSuccess {Number} players.skills.distraction The players distraction skill
-     * @apiSuccess {String} players.skills.agility The players agility skill
-     * @apiSuccess {String} players.skills.strength The players strength skill
-     * @apiSuccess {String} players.maxSkills The maximum amount of skill the player can be assigned
+     * @apiSuccess (200) {Object[]} players A list of players
+     * @apiSuccess (200) {ObjectID} players._id The unique identifier for the player
+     * @apiSuccess (200) {String} players.apiSecret The player api secret
+     * @apiSuccess (200) {String} players.apiId The player api id
+     * @apiSuccess (200) {String} players.name The player name
+     * @apiSuccess (200) {String} players.role The player role
+     * @apiSuccess (200) {Object} players.skills The player skills
+     * @apiSuccess (200) {Number} players.skills.distraction The players distraction skill
+     * @apiSuccess (200) {String} players.skills.agility The players agility skill
+     * @apiSuccess (200) {String} players.skills.strength The players strength skill
+     * @apiSuccess (200) {String} players.maxSkills The maximum amount of skill the player can be assigned
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     [
@@ -90,7 +90,7 @@ router.route('/')
      *         "maxSkills": 12
      *       }
      *     ]
-     * @apiError (500) InternalServerError There was an issue retrieving the list of players
+     * @apiError (500) MongoFindError There was an issue retrieving the list of players
      */
     .get((req, res) => {
       Player.find()
@@ -109,17 +109,17 @@ router.route('/')
  * @apiVersion 1.0.0
  *
  * @apiDescription List all connected players in the system
- * @apiSuccess {Object[]} players A list of players
- * @apiSuccess {ObjectID} players._id The unique identifier for the player
- * @apiSuccess {String} players.apiSecret The player api secret
- * @apiSuccess {String} players.apiId The player api id
- * @apiSuccess {String} players.name The player name
- * @apiSuccess {String} players.role The player role
- * @apiSuccess {Object} players.skills The player skills
- * @apiSuccess {Number} players.skills.distraction The players distraction skill
- * @apiSuccess {String} players.skills.agility The players agility skill
- * @apiSuccess {String} players.skills.strength The players strength skill
- * @apiSuccess {String} players.maxSkills The maximum amount of skill the player can be assigned
+ * @apiSuccess (200) {Object[]} players A list of players
+ * @apiSuccess (200) {ObjectID} players._id The unique identifier for the player
+ * @apiSuccess (200) {String} players.apiSecret The player api secret
+ * @apiSuccess (200) {String} players.apiId The player api id
+ * @apiSuccess (200) {String} players.name The player name
+ * @apiSuccess (200) {String} players.role The player role
+ * @apiSuccess (200) {Object} players.skills The player skills
+ * @apiSuccess (200) {Number} players.skills.distraction The players distraction skill
+ * @apiSuccess (200) {String} players.skills.agility The players agility skill
+ * @apiSuccess (200) {String} players.skills.strength The players strength skill
+ * @apiSuccess (200) {String} players.maxSkills The maximum amount of skill the player can be assigned
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     [
@@ -152,7 +152,7 @@ router.route('/')
  *         "maxSkills": 12
  *       }
  *     ]
- * @apiError (500) InternalServerError There was an issue retrieving the list of players
+ * @apiError (500) MongoFindError There was an issue retrieving the list of players
  */
 router.route('/active')
     .get((req, res) => {
@@ -175,14 +175,14 @@ router.route('/:id')
  * @apiDescription Delete a player from the system
  * @apiParam {ObjectID} :id The unique identifier for the player
  *
- * @apiSuccess {String} message The message 'record deleted'
+ * @apiSuccess (200) {String} message The message 'record deleted'
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     {
  *       'message': 'record deleted'
  *     }
  * @apiError (403) Forbidden The user does not have permission to perform this action
- * @apiError (500) InternalServerError There was an issue removing the player
+ * @apiError (500) MongoRemoveError There was an issue removing the player
  */
     .delete((req, res) => {
       if (req.player.role !== "admin") {
@@ -206,17 +206,16 @@ router.route('/:id')
      * @apiDescription Get details about a player in the system
      * @apiParam {ObjectID} :id The unique identifier for the player
      *
-     * @apiSuccess {Object} player The requested player
-     * @apiSuccess {ObjectID} player._id The unique identifier for the player
-     * @apiSuccess {String} players.apiSecret The player api secret
-     * @apiSuccess {String} players.apiId The player api id
-     * @apiSuccess {String} players.name The player name
-     * @apiSuccess {String} players.role The player role
-     * @apiSuccess {Object} players.skills The player skills
-     * @apiSuccess {Number} players.skills.distraction The players distraction skill
-     * @apiSuccess {String} players.skills.agility The players agility skill
-     * @apiSuccess {String} players.skills.strength The players strength skill
-     * @apiSuccess {String} players.maxSkills The maximum amount of skill the player can be assigned
+     * @apiSuccess (200) {ObjectID} player._id The unique identifier for the player
+     * @apiSuccess (200) {String} players.apiSecret The player api secret
+     * @apiSuccess (200) {String} players.apiId The player api id
+     * @apiSuccess (200) {String} players.name The player name
+     * @apiSuccess (200) {String} players.role The player role
+     * @apiSuccess (200) {Object} players.skills The player skills
+     * @apiSuccess (200) {Number} players.skills.distraction The players distraction skill
+     * @apiSuccess (200) {String} players.skills.agility The players agility skill
+     * @apiSuccess (200) {String} players.skills.strength The players strength skill
+     * @apiSuccess (200) {String} players.maxSkills The maximum amount of skill the player can be assigned
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
@@ -232,8 +231,8 @@ router.route('/:id')
      *       },
      *       "maxSkills": 0
      *     }
-     * @apiError (404) NotFound The requested player was not found
-     * @apiError (500) InternalServerError The identifier specified was invalid
+     * @apiError (404) PlayerNotFound The requested player was not found
+     * @apiError (500) MongoFindByIdError There was an issue retrieving the player
      */
     .get((req, res) => {
       Player.findById(req.params.id)
@@ -263,15 +262,15 @@ router.route('/:id')
      * @apiParam {Number} skills.agility The agility skill value for the player
      * @apiParam {Number} skills.distraction The distraction skill value for the player
      *
-     * @apiSuccess {ObjectID} id The unique identifier for the player
+     * @apiSuccess (201) {ObjectID} id The unique identifier for the player
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 201 Created
      *     {
      *       'id': '56a5652c55ab891352f11fd0'
      *     }
      * @apiError (403) Forbidden The user does not have permission to perform this action
-     * @apiError (400) BadRequest The skills listed are greater than the max skills permitted
-     * @apiError (500) InternalServerError There was an issue saving the player
+     * @apiError (400) TooManySkills The skills listed are greater than the max skills permitted
+     * @apiError (500) MongoSaveError There was an issue saving the player
      */
     .post((req, res) => {
       if (req.params.id !== req.player.id.toString() && req.player.role !== "admin") {

@@ -14,7 +14,8 @@ router.route('/')
  * @apiParam {String} name The name for the player
  * @apiParam {String="player","spectator"} [role="player"] The role
  *
- * @apiSuccess (200) {Object} { apiId: The unique identifier for the players api id, apiSecret: The unique identifier for the players api secret }
+ * @apiSuccess (201) {String} apiId The unique identifier for the players api id
+ * @apiSuccess (201) {String} apiSecret The unique identifier for the players api secret
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 201 Created
  *     {

@@ -11,15 +11,15 @@ router.route('/')
  * @apiVersion 1.0.0
  *
  * @apiDescription List all games in the system
- * @apiSuccess {Object[]} games A list of games
- * @apiSuccess {ObjectID} games._id The unique identifier for the game
- * @apiSuccess {Date} games.started The game start date/time
- * @apiSuccess {Date} games.finished The game finish date/time
- * @apiSuccess {ObjectId[]} games.players The game players
- * @apiSuccess {String} games.current The player whose current move it is
- * @apiSuccess {String} games.winner The game winner
- * @apiSuccess {ObjectID} games.player1 The unique identifier of the first player
- * @apiSuccess {ObjectID} games.player2 The unique identifier of the second player
+ * @apiSuccess (200) {Object[]} games A list of games
+ * @apiSuccess (200) {ObjectID} games._id The unique identifier for the game
+ * @apiSuccess (200) {Date} games.started The game start date/time
+ * @apiSuccess (200) {Date} games.finished The game finish date/time
+ * @apiSuccess (200) {ObjectId[]} games.players The game players
+ * @apiSuccess (200) {String} games.current The player whose current move it is
+ * @apiSuccess (200) {String} games.winner The game winner
+ * @apiSuccess (200) {ObjectID} games.player1 The unique identifier of the first player
+ * @apiSuccess (200) {ObjectID} games.player2 The unique identifier of the second player
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     [
@@ -50,7 +50,7 @@ router.route('/')
  *         "player1": "57fd89cc6221be8340c09f34"
  *       }
  *     ]
- * @apiError (500) InternalServerError There was an issue retrieving the list of games
+ * @apiError (500) MongoFindError There was an issue retrieving the list of games
  */
     .get((req, res) => {
       Game.find()
@@ -62,8 +62,8 @@ router.route('/')
           })
     })
     /**
-     * @api {post} /games/ Add Game
-     * @apiName AddGame
+     * @api {post} /games/ Start Game
+     * @apiName StartGame
      * @apiGroup Game
      * @apiVersion 1.0.0
      *
@@ -71,22 +71,22 @@ router.route('/')
      * @apiParam {ObjectID} player1 The first player
      * @apiParam {ObjectID} player2 The second player
      *
-     * @apiSuccess {ObjectID} id The unique identifier for the player
+     * @apiSuccess (201) {ObjectID} id The unique identifier for the player
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 201 Created
      *     {
      *       'id': '56a5652c55ab891352f11fd0'
      *     }
      * @apiError (403) Forbidden The user does not have permission to perform this action
-     * @apiError (400) BadRequest The player1 and/or player2 parameters were not specified
-     * @apiError (400) BadRequest Player 1 could not be found
-     * @apiError (400) BadRequest Player 1 is not connected
-     * @apiError (400) BadRequest Player 1 is a spectator
-     * @apiError (400) BadRequest Player 1 is in a game
-     * @apiError (400) BadRequest Player 2 could not be found
-     * @apiError (400) BadRequest Player 2 is not connected
-     * @apiError (400) BadRequest Player 2 is a spectator
-     * @apiError (400) BadRequest Player 2 is in a game
+     * @apiError (400) ParametersNotSpecificed The player1 and/or player2 parameters were not specified
+     * @apiError (400) Player1NotFound Player 1 could not be found
+     * @apiError (400) Player1NotConnected Player 1 is not connected
+     * @apiError (400) Player1Spectator Player 1 is a spectator
+     * @apiError (400) Player1InGame Player 1 is in a game
+     * @apiError (400) Player2NotFound Player 2 could not be found
+     * @apiError (400) Player2NotConnected Player 2 is not connected
+     * @apiError (400) Player2Spectator Player 2 is a spectator
+     * @apiError (400) Player2InGame Player 2 is in a game
      * @apiError (500) InternalServerError There was an issue starting the game
      */
     .post((req, res) => {
@@ -177,13 +177,13 @@ router.route('/:id')
  * @apiDescription Delete a game from the system
  * @apiParam {String} :id The unique identifier for the game
  *
- * @apiSuccess {String} message The message 'record deleted'
+ * @apiSuccess (200) {String} message The message 'record deleted'
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     {
  *       'message': 'record deleted'
  *     }
- * @apiError (500) InternalServerError There was an issue removing the game
+ * @apiError (500) MongoRemoveError There was an issue removing the game
  */
     .delete((req, res) => {
       Game.remove({_id: req.params.id})
@@ -205,15 +205,14 @@ router.route('/:id')
      * @apiDescription Give details about a game in the system
      * @apiParam {ObjectID} :id The unique identifier for the game
      *
-     * @apiSuccess {Object} game The requested game
-     * @apiSuccess {ObjectID} game._id The unique identifier for the game
-     * @apiSuccess {Date} game.started The game start date/time
-     * @apiSuccess {Date} game.finished The game finish date/time
-     * @apiSuccess {ObjectId[]} game.players The game players
-     * @apiSuccess {String} game.current The player whose current move it is
-     * @apiSuccess {String} game.winner The game winner
-     * @apiSuccess {ObjectID} game.player1 The unique identifier of the first player
-     * @apiSuccess {ObjectID} game.player2 The unique identifier of the second player
+     * @apiSuccess (200) {ObjectID} _id The unique identifier for the game
+     * @apiSuccess (200) {Date} started The game start date/time
+     * @apiSuccess (200) {Date} finished The game finish date/time
+     * @apiSuccess (200) {ObjectId[]} players The game players
+     * @apiSuccess (200) {String} current The player whose current move it is
+     * @apiSuccess (200) {String} winner The game winner
+     * @apiSuccess (200) {ObjectID} player1 The unique identifier of the first player
+     * @apiSuccess (200) {ObjectID} player2 The unique identifier of the second player
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
@@ -229,8 +228,8 @@ router.route('/:id')
      *       "player2": "57fd8a266221be8340c09f35",
      *       "player1": "57fd89cc6221be8340c09f34"
      *     }
-     * @apiError (404) NotFound The requested game was not found
-     * @apiError (500) InternalServerError There was an issue retrieving the game
+     * @apiError (404) GameNotFound The requested game was not found
+     * @apiError (500) MongoFindByIdError There was an issue retrieving the game
      */
     .get((req, res) => {
       Game.findById(req.params.id)

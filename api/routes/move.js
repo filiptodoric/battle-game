@@ -14,19 +14,19 @@ router.route('/')
  * @apiDescription Add a new move to the system
  * @apiParam {String="attack","heal"} action The name for the move
  *
- * @apiSuccess {ObjectID} id The unique identifier for the move
+ * @apiSuccess (201) {ObjectID} id The unique identifier for the move
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 201 Created
  *     {
  *       'id': '56a5652c55ab891352f11fd0'
  *     }
- * @apiError (400) BadRequest The action parameter was not specified
- * @apiError (400) BadRequest An illegal move action was specified
- * @apiError (500) InternalServerError The player is not in a game
- * @apiError (500) InternalServerError There was an issue attacking
- * @apiError (500) InternalServerError There was an issue healing
- * @apiError (500) InternalServerError There was an issue retrieving the player
- * @apiError (500) InternalServerError There was an issue retrieving the game
+ * @apiError (400) ParameterNotSpecified The action parameter was not specified
+ * @apiError (400) IllegalActionSpecified An illegal move action was specified
+ * @apiError (500) PlayerNotInGame The player is not in a game
+ * @apiError (500) GameAttackError There was an issue attacking
+ * @apiError (500) GameHealError There was an issue healing
+ * @apiError (500) MongoFindOneError There was an issue retrieving the player
+ * @apiError (500) MongoGameFindOneError There was an issue retrieving the game
  */
     .post((req, res) => {
       if (req.body.action == null) {
@@ -83,14 +83,14 @@ router.route('/')
      * @apiVersion 1.0.0
      *
      * @apiDescription List all moves in the system
-     * @apiSuccess {Object[]} moves A list of players
-     * @apiSuccess {ObjectID} moves._id The unique identifier for the move
-     * @apiSuccess {Number} moves.value The end value of the move
-     * @apiSuccess {String} moves.result The resulting action of the move
-     * @apiSuccess {ObjectID} moves.game The unique identifier of the game the move was performed in
-     * @apiSuccess {ObjectID} moves.player The player that played the action
-     * @apiSuccess {String} moves.action The action requested by the player
-     * @apiSuccess {Date} moves.received The time the move was created
+     * @apiSuccess (200) {Object[]} moves A list of players
+     * @apiSuccess (200) {ObjectID} moves._id The unique identifier for the move
+     * @apiSuccess (200) {Number} moves.value The end value of the move
+     * @apiSuccess (200) {String} moves.result The resulting action of the move
+     * @apiSuccess (200) {ObjectID} moves.game The unique identifier of the game the move was performed in
+     * @apiSuccess (200) {ObjectID} moves.player The player that played the action
+     * @apiSuccess (200) {String} moves.action The action requested by the player
+     * @apiSuccess (200) {Date} moves.received The time the move was created
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     [
@@ -113,7 +113,7 @@ router.route('/')
      *         "received": "2016-10-12T18:51:59.063Z"
      *       }
      *     ]
-     * @apiError (500) InternalServerError There was an issue retrieving the list of moves
+     * @apiError (500) MongoFindError There was an issue retrieving the list of moves
      */
     .get((req, res) => {
       Move.find()
@@ -136,14 +136,14 @@ router.route('/:id')
  * @apiDescription Delete a move from the system
  * @apiParam {ObjectID} :id The unique identifier for the move
  *
- * @apiSuccess {String} message The message 'record deleted'
+ * @apiSuccess (200) {String} message The message 'record deleted'
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     {
      *       'message': 'record deleted'
      *     }
  * @apiError (403) Forbidden The user does not have permission to perform this action
- * @apiError (500) InternalServerError There was an issue removing the move
+ * @apiError (500) MongoRemoveError There was an issue removing the move
  */
     .delete((req, res) => {
       if (req.player.role !== "admin") {
@@ -166,14 +166,13 @@ router.route('/:id')
      *
      * @apiDescription Get details about a move in the system
      * @apiParam {ObjectID} :id The unique identifier for the move
-     * @apiSuccess {Object} move The requested move
-     * @apiSuccess {ObjectID} move._id The unique identifier for the move
-     * @apiSuccess {Number} move.value The end value of the move
-     * @apiSuccess {String} move.result The resulting action of the move
-     * @apiSuccess {ObjectID} move.game The unique identifier of the game the move was performed in
-     * @apiSuccess {ObjectID} move.player The player that played the action
-     * @apiSuccess {String} move.action The action requested by the player
-     * @apiSuccess {Date} move.received The time the move was created
+     * @apiSuccess (200) {ObjectID} _id The unique identifier for the move
+     * @apiSuccess (200) {Number} value The end value of the move
+     * @apiSuccess (200) {String} result The resulting action of the move
+     * @apiSuccess (200) {ObjectID} game The unique identifier of the game the move was performed in
+     * @apiSuccess (200) {ObjectID} player The player that played the action
+     * @apiSuccess (200) {String} action The action requested by the player
+     * @apiSuccess (200) {Date} received The time the move was created
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *       {
@@ -185,8 +184,8 @@ router.route('/:id')
      *         "action": "attack",
      *         "received": "2016-10-12T18:51:56.017Z"
      *       }
-     * @apiError (404) NotFound The move was not found
-     * @apiError (500) InternalServerError There was an issue retrieving the move
+     * @apiError (404) MoveNotFound The move was not found
+     * @apiError (500) MongoFindByIdError There was an issue retrieving the move
      */
     .get((req, res) => {
       Move.findById(req.params.id)
