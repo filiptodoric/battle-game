@@ -80,7 +80,7 @@ gameSchema.methods.attack = function (playerId) {
           })
           .then((result) => {
             if (this.player1.health <= 0 || this.player2.health <= 0) {
-              this.gameOver(move)
+              this.gameOver()
             } else {
               io.to(this._id).emit('move played', { id: move.id })
               io.to("spectators").emit('move played', { id: move.id })
@@ -129,7 +129,7 @@ gameSchema.methods.heal = function (playerId) {
   })
 }
 
-gameSchema.methods.gameOver = function (finalMove) {
+gameSchema.methods.gameOver = function () {
   if (this.player1.health <= 0) {
     // player 2 has won
     this.winner = this.player2.id
@@ -139,10 +139,6 @@ gameSchema.methods.gameOver = function (finalMove) {
   this.current = null
   this.finished = Date.now()
   this.save((err, doc) => {
-    let data = {
-      game: this,
-      winningMove: finalMove
-    }
     process.emit('game over', { id: this._id })
     io.to(this._id).emit('game over', { id: this._id })
     io.to("spectators").emit('game over', { id: this._id })
