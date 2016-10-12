@@ -9,11 +9,11 @@ const config = require('config')
 
 let io = null
 
-exports.io = function() {
+exports.io = () => {
   return io
 }
 
-exports.initialize = function() {
+exports.initialize = () => {
   io = socketio.listen(server)
   // need to initialize Game below because
   // socket io is required in the game model

@@ -241,10 +241,4 @@ gameSchema.virtual('player2').get(function () {
   return this.players[1]
 })
 
-gameSchema.virtual('moves').get(function () {
-  return this.__moves
-}).set(function (val) {
-  this.__moves = val
-})
-
 module.exports = mongoose.model('game', gameSchema)
