@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 const random = require('random-js')()
 const Move = require('./move')
 const express = require('express')
-const io = require('../server').socket.io
+const io = require('../server').socket
 const config = require('config')
 
 let gameSchema = new Schema({
