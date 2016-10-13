@@ -8,6 +8,9 @@ const eventManager = require('../events/event-manager')
 let io = null
 
 exports.io = () => {
+  if (io == null) {
+    exports.initialize()
+  }
   return io
 }
 

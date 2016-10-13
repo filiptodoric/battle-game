@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "SET NODE_ENV=dev && node server.js",
+    "autonomous": "node strategy-testing",
     "test": "mocha --timeout 10000"
   },
   "author": "",
