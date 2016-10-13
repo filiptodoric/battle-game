@@ -81,11 +81,11 @@ router.route('/')
      * @apiError (400) ParametersNotSpecificed The player1 and/or player2 parameters were not specified
      * @apiError (400) Player1NotFound Player 1 could not be found
      * @apiError (400) Player1NotConnected Player 1 is not connected
-     * @apiError (400) Player1Spectator Player 1 is a spectator
+     * @apiError (400) Player1NotPlayer Player 1 is not a player
      * @apiError (400) Player1InGame Player 1 is in a game
      * @apiError (400) Player2NotFound Player 2 could not be found
      * @apiError (400) Player2NotConnected Player 2 is not connected
-     * @apiError (400) Player2Spectator Player 2 is a spectator
+     * @apiError (400) Player2NotPlayer Player 2 is not a player
      * @apiError (400) Player2InGame Player 2 is in a game
      * @apiError (500) InternalServerError There was an issue starting the game
      */
@@ -105,8 +105,8 @@ router.route('/')
                 res.status(400).json({message: "Player 1 not found"})
               } else if (player.socket == null) {
                 res.status(400).json({message: "Player 1 is not connected"})
-              } else if (player.role === "spectator") {
-                res.status(400).json({message: "Player 1 is a spectator"})
+              } else if (player.role !== "player") {
+                res.status(400).json({message: "Player 1 not a player"})
               } else {
                 player1 = player
                 return Game.findOne({players: player._id, winner: null})
@@ -126,8 +126,8 @@ router.route('/')
                 res.status(400).json({message: "Player 2 not found"})
               } else if (player.socket == null) {
                 res.status(400).json({message: "Player 2 is not connected"})
-              } else if (player.role === "spectator") {
-                res.status(400).json({message: "Player 2 is a spectator"})
+              } else if (player.role !== "player") {
+                res.status(400).json({message: "Player 2 is not a player"})
               } else {
                 player2 = player
                 return Game.findOne({players: player._id, winner: null})

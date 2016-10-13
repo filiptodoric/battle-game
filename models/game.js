@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 const random = require('random-js')()
 const Move = require('./move')
 const express = require('express')
-const io = require('../socket/server').io()
+const io = require('../server').socket.io
 const config = require('config')
 
 let gameSchema = new Schema({
@@ -184,7 +184,6 @@ gameSchema.methods.gameOver = function () {
         this.current = null
         this.finished = Date.now()
         this.save((err, doc) => {
-          process.emit('game over', {id: this._id})
           io.to(this._id).emit('game over', {id: this._id})
           io.to("spectators").emit('game over', {id: this._id})
           io.sockets.connected[this.player1.socket].leave(this._id)
