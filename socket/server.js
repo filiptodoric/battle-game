@@ -37,7 +37,11 @@ exports.initialize = () => {
           thisPlayer.save()
               .then((result) => {
                 console.log(thisPlayer.name, "has connected")
-                socket.emit("success", {id: thisPlayer.id})
+                socket.emit("success", {
+                  id: thisPlayer.id,
+                  name: thisPlayer.name, 
+                  health: thisPlayer.health
+                })
                 if(thisPlayer.role === "spectator") {
                   socket.join("spectators")
                 } else if (thisPlayer.role === "player") {
