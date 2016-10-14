@@ -12,6 +12,10 @@ eventManager.on("player connected", (player) => {
 })
 
 eventManager.on("player disconnected", (player) => {
+  Game.remove({players: player._id})
+      .then((games) => {
+        console.log('Games removed')
+      })
   delete players[player.id]
   for (let i = 0; i < pendingGames.length; i++) {
     if (pendingGames[i].indexOf(player.id) >= 0) {
